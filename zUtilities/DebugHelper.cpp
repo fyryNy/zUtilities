@@ -47,21 +47,25 @@ namespace GOTHIC_ENGINE {
 
     AddSeparator( leftView, "Routine" );
     Print( leftView, "Waypoint", npc->wpname );
-    if ( auto sym = parser->GetSymbol( npc->GetAIState() ) )
+
+    auto symAIState = parser->GetSymbol(npc->GetAIState());
+    if (npc->GetAIState() > 0 && symAIState)
     {
-      Print( leftView, "AIState", sym->name );
+      Print(leftView, "AIState", symAIState->name + Z" " + Z npc->GetAIState());
     }
     else
     {
-      Print( leftView, "AIState", Z npc->GetAIState() );
+      Print(leftView, "AIState", Z npc->GetAIState());
     }
-    if ( auto sym = parser->GetSymbol( npc->daily_routine ) )
+
+    auto symRoutine = parser->GetSymbol(npc->daily_routine);
+    if (npc->daily_routine > 0 && symRoutine)
     {
-      Print( leftView, "DailyRoutine", sym->name );
+      Print(leftView, "DailyRoutine", symRoutine->name + Z" " + Z npc->daily_routine);
     }
     else
     {
-      Print( leftView, "DailyRoutine", Z npc->daily_routine );
+      Print(leftView, "DailyRoutine", Z npc->daily_routine);
     }
 
     //RIGHT SIDE
