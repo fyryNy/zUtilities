@@ -589,7 +589,7 @@ instance MenuItem_Opt_Page2_LabelMissionItems_Choice(C_MENU_ITEM_DEF)
 
 instance MenuItem_Opt_Page2_RemoveEmptyBodies(C_MENU_ITEM)
 {
-  CurrentMenuItem_PY = 5;
+  CurrentMenuItem_PY = 7;
   C_MENU_ITEM_TEXT_BASE();
   fontname = FontSmall;
   posy += Menu_DY * CurrentMenuItem_PY + Text_DY;
