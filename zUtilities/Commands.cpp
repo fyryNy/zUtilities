@@ -2,60 +2,60 @@
 // Union SOURCE file
 
 namespace GOTHIC_ENGINE {
-  int (*innerEvalFunc)(const zSTRING&, zSTRING&);
+  int ( *innerEvalFunc )( const zSTRING&, zSTRING& );
 
   int GiveAllItems() {
-    auto c_item = parser->GetIndex(oCItem::classDef->scriptClassName);
-    if (c_item == -1) {
+    auto c_item = parser->GetIndex( oCItem::classDef->scriptClassName );
+    if ( c_item == -1 ) {
       return 0;
     }
 
     oCItem* tempItem = nullptr;
 
     int itemsCreated = 0;
-    for (int i = 0; i < parser->symtab.GetNumInList(); i++) {
+    for ( int i = 0; i < parser->symtab.GetNumInList(); i++ ) {
       zCPar_Symbol* symbol = parser->symtab.table[i];
 
-      if (i == parser->instance_help) {
+      if ( i == parser->instance_help ) {
         continue;
       }
 
-      if (symbol->type != zPAR_TYPE_INSTANCE) {
+      if ( symbol->type != zPAR_TYPE_INSTANCE ) {
         continue;
       }
 
-      if ((symbol->flags & zPAR_FLAG_CONST) == 0) {
+      if ( ( symbol->flags & zPAR_FLAG_CONST ) == 0 ) {
         continue;
       }
 
       //  Instance isn't global scope
-      if (symbol->name.HasWord(".")) {
+      if ( symbol->name.HasWord( "." ) ) {
         continue;
       }
 
-      auto baseClass = parser->GetBaseClass(symbol);
+      auto baseClass = parser->GetBaseClass( symbol );
 
       // Symbol isn't a item class
-      if (baseClass != c_item) {
+      if ( baseClass != c_item ) {
         continue;
       }
 
       tempItem = new oCItem();
-      parser->CreateInstance(i, tempItem);
+      parser->CreateInstance( i, tempItem );
       auto itemFlags = tempItem->flags;
       tempItem->Release();
       tempItem = nullptr;
 
-      if (itemFlags == -1) {
+      if ( itemFlags == -1 ) {
         continue;
       }
 
-      oCItem* item = static_cast<oCItem*>(ogame->GetGameWorld()->CreateVob(zVOB_TYPE_ITEM, i));
-      if (item->HasFlag(ITM_FLAG_MULTI)) {
+      oCItem* item = static_cast<oCItem*>( ogame->GetGameWorld()->CreateVob( zVOB_TYPE_ITEM, i ) );
+      if ( item->HasFlag( ITM_FLAG_MULTI ) ) {
         item->amount = 50;
       }
 
-      player->PutInInv(item);
+      player->PutInInv( item );
       item->Release();
       itemsCreated++;
     }

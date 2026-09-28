@@ -359,3 +359,9 @@ MP x[24] M[dDtT] Release
 
 *.last
 *.bat
+# Union 1.0m CMake/msvc-wine generated files
+/out/
+/compile_commands.json
+/cmake/IntelliSenseActivePreset.h
+
+*.vdf

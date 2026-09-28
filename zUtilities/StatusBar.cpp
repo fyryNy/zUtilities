@@ -49,29 +49,32 @@ namespace GOTHIC_ENGINE {
   }
 
   int StatusBar::GetRestoreValue() {
-    if (restoreAttribute == -1)
+    if ( restoreAttribute == -1 )
       return 0;
 
-    if (!player->inventory2.IsOpen())
+    if ( !player->inventory2.IsOpen() )
       return 0;
 
-    if ((int)bar->currentValue == (int)bar->maxHigh)
+    if ( (int)bar->currentValue == (int)bar->maxHigh )
       return 0;
 
     oCItem* item = player->inventory2.GetSelectedItem();
-    if (!item)
+    if ( !item )
       return 0;
 
-    if (!item->onState[0])
+    if ( !item->onState[0] )
       return 0;
 
-    if (!item->HasFlag(ITM_CAT_FOOD) && !item->HasFlag(ITM_CAT_POTION))
+    if ( !item->HasFlag( ITM_CAT_FOOD ) && !item->HasFlag( ITM_CAT_POTION ) )
       return 0;
 
-    return GetValueFromItem(item, restoreAttribute);
+    return GetValueFromItem( item, restoreAttribute );
   }
 
   void StatusBar::DrawPrediction( int value ) {
+    if ( bar->maxHigh <= 0 )
+      return;
+
     int current = (int)bar->currentValue * 100 / (int)bar->maxHigh;
     int bonus = min( value * 100 / (int)bar->maxHigh, 100 );
 
@@ -81,9 +84,9 @@ namespace GOTHIC_ENGINE {
     int start = current * 8192 / 100;
 
     int x1 = max( start, 0 );
-    int y1 = bar->range_bar->py1;
+    int y1 = 0;
     int x2 = min( bonus * 8192 / 100 + start, 8192 );
-    int y2 = bar->range_bar->py2;
+    int y2 = 8192;
 
     predictView = new zCView( x1, y1, x2, y2 );
     predictView->InsertBack( bar->texValue );
@@ -109,7 +112,7 @@ namespace GOTHIC_ENGINE {
   }
 
   zSTRING StatusBar::GetBarValue() {
-    return Z(int)bar->currentValue + "/" + Z(int)bar->maxHigh;
+    return Z( int )bar->currentValue + "/" + Z( int )bar->maxHigh;
   }
 
   void StatusBar::PrintValue( oCNpc* npc ) {
@@ -123,47 +126,47 @@ namespace GOTHIC_ENGINE {
 
     valueView = new zCView( 0, 0, 8192, 8192 );
 
-    auto str =  GetBarValue();
+    auto str = GetBarValue();
 
 
-    if (name && name.Length()) {
+    if ( name && name.Length() ) {
       str = name + ": " + str;
     }
 
-    zCView* ownerView = (Options::StatusBarValueMode == Inside) ? bar->range_bar : screen;
+    zCView* ownerView = ( Options::StatusBarValueMode == Inside ) ? bar->range_bar : screen;
     ownerView->InsertItem( valueView );
 
     if ( Options::StatusBarValueMode != Inside ) {
-      PrintValueOutside(str, npc);
+      PrintValueOutside( str, npc );
       return;
     }
 
     valueView->PrintCXY( str );
   }
 
-  void StatusBar::PrintValueOutside(zSTRING str, oCNpc* npc) {
+  void StatusBar::PrintValueOutside( zSTRING str, oCNpc* npc ) {
     int offsetY = bar->vsizey / 2 + valueView->FontY();
-    int x = bar->vposx + bar->vsizex / 2 - valueView->FontSize(str) / 2;
+    int x = bar->vposx + bar->vsizex / 2 - valueView->FontSize( str ) / 2;
     int y = bar->vposy;
     bool center = false;
 
-    if (Options::StatusBarValueMode == Above)
+    if ( Options::StatusBarValueMode == Above )
       center = true;
-    else if (bar->vposx + bar->vsizex < 3072)
+    else if ( bar->vposx + bar->vsizex < 3072 )
       x = bar->vposx + bar->vsizex + valueView->FontY() / 2;
-    else if (bar->vposx > 5120)
-      x = bar->vposx - valueView->FontSize(str) - valueView->FontY() / 2;
+    else if ( bar->vposx > 5120 )
+      x = bar->vposx - valueView->FontSize( str ) - valueView->FontY() / 2;
     else
       center = true;
 
-    if (center)
-      if (bar->vposy + bar->vsizey > 4092)
+    if ( center )
+      if ( bar->vposy + bar->vsizey > 4092 )
         y -= offsetY;
       else
         y += offsetY;
 
-    valueView->SetFontColor(zCOLOR(valueView->color.r, valueView->color.g, valueView->color.b, bar->alpha));
-    valueView->Print(x, y, str);
+    valueView->SetFontColor( zCOLOR( valueView->color.r, valueView->color.g, valueView->color.b, bar->alpha ) );
+    valueView->Print( x, y, str );
   }
 
   void StatusBar::ChangeBarPos() {
@@ -202,7 +205,7 @@ namespace GOTHIC_ENGINE {
   }
 
   void StatusBar::Loop() {
-    if (!CanLoop())
+    if ( !CanLoop() )
       return;
 
     ChangeBarPos();

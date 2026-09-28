@@ -12,10 +12,11 @@ namespace GOTHIC_ENGINE {
   class NoGrass {
   private:
     std::vector<string> visualsNames;
-    std::vector<string> visualsHidden;
+    std::unordered_set<zCVob*> hiddenVobs;
     bool IsValidVob( zCVob* vob );
 
   public:
+    bool IsHidden( zCVob* vob ) const;
     void ShowVisualsNames();
     void RestoreVisibility();
     void UpdateVisualsList();

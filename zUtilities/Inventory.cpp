@@ -35,13 +35,13 @@ namespace GOTHIC_ENGINE {
     if ( !Options::ActivateUsedMunition )
       return;
 
-    if (!player->inventory2.IsOpen())
+    if ( !player->inventory2.IsOpen() )
       return;
 
-    if (lastActiveMunition) {
-      if (player->inventory2.IsIn(lastActiveMunition, 1) == nullptr
-            && player->GetLeftHand() != lastActiveMunition
-            && player->GetRightHand() != lastActiveMunition) {
+    if ( lastActiveMunition ) {
+      if ( player->inventory2.IsIn( lastActiveMunition, 1 ) == nullptr
+        && player->GetLeftHand() != lastActiveMunition
+        && player->GetRightHand() != lastActiveMunition ) {
         lastActiveMunition = nullptr;
       }
     }
@@ -68,13 +68,13 @@ namespace GOTHIC_ENGINE {
 
   HOOK Hook_oCInformationManager_OnTradeBegin PATCH( &oCInformationManager::OnTradeBegin, &oCInformationManager::OnTradeBegin_Union );
   void oCInformationManager::OnTradeBegin_Union() {
-    THISCALL( Hook_oCInformationManager_OnTradeBegin )();
+    THISCALL( Hook_oCInformationManager_OnTradeBegin )( );
     playerStatus.traderNpc = Npc;
   }
 
   HOOK Hook_oCItemContainer_Close PATCH( &oCItemContainer::Close, &oCItemContainer::Close_Union );
   void oCItemContainer::Close_Union() {
     playerStatus.traderNpc = nullptr;
-    THISCALL( Hook_oCItemContainer_Close )();
+    THISCALL( Hook_oCItemContainer_Close )( );
   }
 }

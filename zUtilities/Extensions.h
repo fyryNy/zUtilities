@@ -6,7 +6,7 @@ namespace GOTHIC_ENGINE {
     int topDmgAmount = 0, topDmgIndex = 0;
 
     for ( int i = 0; i < (int)oEDamageIndex::oEDamageIndex_MAX; i++ )
-      if ( (oEDamageType)(1 << (oEDamageIndex)i) & damagetype )
+      if ( (oEDamageType)( 1 << (oEDamageIndex)i ) & damagetype )
         if ( damageArr[i] >= topDmgAmount ) {
           topDmgAmount = damageArr[i];
           topDmgIndex = i;
@@ -53,7 +53,7 @@ namespace GOTHIC_ENGINE {
       return Invalid;
 
     for ( int i = 0; i < oEIndexDamage::oEDamageIndex_MAX; i++ )
-      if ( (oETypeDamage)(1 << (oEIndexDamage)i) & spell->damageType )
+      if ( (oETypeDamage)( 1 << (oEIndexDamage)i ) & spell->damageType )
         return i;
 
     return Invalid;
@@ -106,30 +106,30 @@ namespace GOTHIC_ENGINE {
     if ( !weapon->HasFlag( ITM_CAT_FF ) || weapon->munition <= 0 )
       return nullptr;
 
-    return (weapon->HasFlag( ITM_FLAG_CROSSBOW )) ? this->GetLeftHand()->CastTo<oCItem>() : this->GetRightHand()->CastTo<oCItem>();
+    return ( weapon->HasFlag( ITM_FLAG_CROSSBOW ) ) ? this->GetLeftHand()->CastTo<oCItem>() : this->GetRightHand()->CastTo<oCItem>();
   }
 
-  bool oCNpc::IsInventoryEmpty(bool ignoreArmor, bool ignoreActive) {
+  bool oCNpc::IsInventoryEmpty( bool ignoreArmor, bool ignoreActive ) {
     this->inventory2.UnpackAllItems();
 
 #if ENGINE <= Engine_G1A
-    for (int cat = 0; cat < INV_MAX; cat++) {
+    for ( int cat = 0; cat < INV_MAX; cat++ ) {
       auto npcInv = this->inventory2.inventory[cat].next;
 #else
     auto npcInv = this->inventory2.inventory.next;
 #endif
 
-    while (npcInv) {
+    while ( npcInv ) {
       auto item = npcInv->GetData();
       npcInv = npcInv->next;
 
-      if (item->instanz < 0)
+      if ( !item || item->instanz < 0 )
         continue;
 
-      if (ignoreArmor && item->HasFlag(ITM_CAT_ARMOR))
+      if ( ignoreArmor && item->HasFlag( ITM_CAT_ARMOR ) )
         continue;
 
-      if (ignoreActive && item->HasFlag(ITM_FLAG_ACTIVE))
+      if ( ignoreActive && item->HasFlag( ITM_FLAG_ACTIVE ) )
         continue;
 
       return false;
@@ -139,6 +139,31 @@ namespace GOTHIC_ENGINE {
     }
 #endif
 
-    return true;
+  return true;
+  }
+
+  bool oCNpc::IsFullyDead() {
+    if ( this->attribute[NPC_ATR_HITPOINTS] > 0 ) {
+      return false;
+    }
+
+    if ( !this->human_ai || !this->human_ai->IsDead() ) {
+      return false;
+    }
+
+    /*if (!this->IsAIState(NPC_AISTATE_DEAD) && !this->IsAIState(NPC_AISTATE_FADEAWAY)) {
+      return false;
+    }*/
+
+    if ( this->GetBodyState() != BS_DEAD ) {
+      return false;
+    }
+
+    auto model = this->GetModel();
+    if ( !model ) {
+      return false;
+    }
+
+    return model->IsStateActive( model->GetAniFromAniID( this->human_ai->s_dead1 ) ) || model->IsStateActive( model->GetAniFromAniID( this->human_ai->s_dead2 ) ) || model->IsStateActive( model->GetAniFromAniID( this->human_ai->s_drowned ) );
   }
 }

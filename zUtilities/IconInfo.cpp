@@ -32,7 +32,7 @@ namespace GOTHIC_ENGINE {
       return;
 
     int x = vx + vsize + screen->FontY() / 10;
-    int y = vy + (screen->any( py2 ) - vy) / 2 - screen->FontY() / 2;
+    int y = vy + ( screen->any( py2 ) - vy ) / 2 - screen->FontY() / 2;
 
     zCView* view = new zCView( 0, 0, 8192, 8192 );
     view->SetFontColor( zCOLOR( 255, 255, 255, color.alpha ) );
@@ -43,17 +43,17 @@ namespace GOTHIC_ENGINE {
   }
 
   int IconInfo::GetSize() {
-    if (!text.Length()) {
+    if ( !text.Length() ) {
       return vsize;
     }
 
-    return vsize + screen->FontY() / 10 + screen->FontSize(text);
+    return vsize + screen->FontY() / 10 + screen->FontSize( text );
   }
 
   void IconInfo::RestoreViewport() {
     int ScreenX, ScreenY, ScreenSX, ScreenSY;
-    screen->GetViewport(ScreenX, ScreenY, ScreenSX, ScreenSY);
-    zrenderer->SetViewport(ScreenX, ScreenY, ScreenSX, ScreenSY);
+    screen->GetViewport( ScreenX, ScreenY, ScreenSX, ScreenSY );
+    zrenderer->SetViewport( ScreenX, ScreenY, ScreenSX, ScreenSY );
   }
 
   IconInfo::IconInfo( int x, int y, int size, zCOLOR color, zSTRING texName, zSTRING text = "" )

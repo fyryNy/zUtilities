@@ -1,0 +1,189 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 25,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "msvc-wine",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/msvc-wine-x86.cmake",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+                "CMAKE_MSVC_DEBUG_INFORMATION_FORMAT": "Embedded",
+                "UNION_SDK_ROOT": "$env{HOME}/my_msvc/opt/Union/1.0m"
+            }
+        },
+        {
+            "name": "debug",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "release",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "runtime-mt",
+            "hidden": true,
+            "cacheVariables": {
+                "UNION_RUNTIME": "MT"
+            }
+        },
+        {
+            "name": "runtime-md",
+            "hidden": true,
+            "cacheVariables": {
+                "UNION_RUNTIME": "MD"
+            }
+        },
+        {
+            "name": "game-g1",
+            "hidden": true,
+            "cacheVariables": {
+                "UNION_GAME": "G1"
+            }
+        },
+        {
+            "name": "game-g1a",
+            "hidden": true,
+            "cacheVariables": {
+                "UNION_GAME": "G1A"
+            }
+        },
+        {
+            "name": "game-g2",
+            "hidden": true,
+            "cacheVariables": {
+                "UNION_GAME": "G2"
+            }
+        },
+        {
+            "name": "game-g2a",
+            "hidden": true,
+            "cacheVariables": {
+                "UNION_GAME": "G2A"
+            }
+        },
+        {
+            "name": "game-mp-x2",
+            "hidden": true,
+            "cacheVariables": {
+                "UNION_GAME": "MP_X2"
+            }
+        },
+        {
+            "name": "game-mp-x4",
+            "hidden": true,
+            "cacheVariables": {
+                "UNION_GAME": "MP_X4"
+            }
+        },
+        {
+            "name": "G1-Debug-msvc-wine",
+            "inherits": ["msvc-wine", "debug", "runtime-md", "game-g1"]
+        },
+        {
+            "name": "G1-MT-Release-msvc-wine",
+            "inherits": ["msvc-wine", "release", "runtime-mt", "game-g1"]
+        },
+        {
+            "name": "G1-MD-Release-msvc-wine",
+            "inherits": ["msvc-wine", "release", "runtime-md", "game-g1"]
+        },
+        {
+            "name": "G1A-Debug-msvc-wine",
+            "inherits": ["msvc-wine", "debug", "runtime-md", "game-g1a"]
+        },
+        {
+            "name": "G1A-MT-Release-msvc-wine",
+            "inherits": ["msvc-wine", "release", "runtime-mt", "game-g1a"]
+        },
+        {
+            "name": "G1A-MD-Release-msvc-wine",
+            "inherits": ["msvc-wine", "release", "runtime-md", "game-g1a"]
+        },
+        {
+            "name": "G2-Debug-msvc-wine",
+            "inherits": ["msvc-wine", "debug", "runtime-md", "game-g2"]
+        },
+        {
+            "name": "G2-MT-Release-msvc-wine",
+            "inherits": ["msvc-wine", "release", "runtime-mt", "game-g2"]
+        },
+        {
+            "name": "G2-MD-Release-msvc-wine",
+            "inherits": ["msvc-wine", "release", "runtime-md", "game-g2"]
+        },
+        {
+            "name": "G2A-Debug-msvc-wine",
+            "inherits": ["msvc-wine", "debug", "runtime-md", "game-g2a"]
+        },
+        {
+            "name": "G2A-MT-Release-msvc-wine",
+            "inherits": ["msvc-wine", "release", "runtime-mt", "game-g2a"]
+        },
+        {
+            "name": "G2A-MD-Release-msvc-wine",
+            "inherits": ["msvc-wine", "release", "runtime-md", "game-g2a"]
+        },
+        {
+            "name": "MP-x2-Debug-msvc-wine",
+            "inherits": ["msvc-wine", "debug", "runtime-md", "game-mp-x2"]
+        },
+        {
+            "name": "MP-x2-MT-Release-msvc-wine",
+            "inherits": ["msvc-wine", "release", "runtime-mt", "game-mp-x2"]
+        },
+        {
+            "name": "MP-x2-MD-Release-msvc-wine",
+            "inherits": ["msvc-wine", "release", "runtime-md", "game-mp-x2"]
+        },
+        {
+            "name": "MP-x4-Debug-msvc-wine",
+            "inherits": ["msvc-wine", "debug", "runtime-md", "game-mp-x4"]
+        },
+        {
+            "name": "MP-x4-MT-Release-msvc-wine",
+            "inherits": ["msvc-wine", "release", "runtime-mt", "game-mp-x4"]
+        },
+        {
+            "name": "MP-x4-MD-Release-msvc-wine",
+            "inherits": ["msvc-wine", "release", "runtime-md", "game-mp-x4"]
+        }
+    ],
+    "buildPresets": [
+        { "name": "G1-Debug-msvc-wine", "configurePreset": "G1-Debug-msvc-wine" },
+        { "name": "G1-MT-Release-msvc-wine", "configurePreset": "G1-MT-Release-msvc-wine" },
+        { "name": "G1-MD-Release-msvc-wine", "configurePreset": "G1-MD-Release-msvc-wine" },
+        { "name": "G1A-Debug-msvc-wine", "configurePreset": "G1A-Debug-msvc-wine" },
+        { "name": "G1A-MT-Release-msvc-wine", "configurePreset": "G1A-MT-Release-msvc-wine" },
+        { "name": "G1A-MD-Release-msvc-wine", "configurePreset": "G1A-MD-Release-msvc-wine" },
+        { "name": "G2-Debug-msvc-wine", "configurePreset": "G2-Debug-msvc-wine" },
+        { "name": "G2-MT-Release-msvc-wine", "configurePreset": "G2-MT-Release-msvc-wine" },
+        { "name": "G2-MD-Release-msvc-wine", "configurePreset": "G2-MD-Release-msvc-wine" },
+        { "name": "G2A-Debug-msvc-wine", "configurePreset": "G2A-Debug-msvc-wine" },
+        { "name": "G2A-MT-Release-msvc-wine", "configurePreset": "G2A-MT-Release-msvc-wine" },
+        { "name": "G2A-MD-Release-msvc-wine", "configurePreset": "G2A-MD-Release-msvc-wine" },
+        { "name": "MP-x2-Debug-msvc-wine", "configurePreset": "MP-x2-Debug-msvc-wine" },
+        { "name": "MP-x2-MT-Release-msvc-wine", "configurePreset": "MP-x2-MT-Release-msvc-wine" },
+        { "name": "MP-x2-MD-Release-msvc-wine", "configurePreset": "MP-x2-MD-Release-msvc-wine" },
+        { "name": "MP-x4-Debug-msvc-wine", "configurePreset": "MP-x4-Debug-msvc-wine" },
+        { "name": "MP-x4-MT-Release-msvc-wine", "configurePreset": "MP-x4-MT-Release-msvc-wine" },
+        { "name": "MP-x4-MD-Release-msvc-wine", "configurePreset": "MP-x4-MD-Release-msvc-wine" }
+    ]
+}

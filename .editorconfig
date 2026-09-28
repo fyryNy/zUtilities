@@ -1,0 +1,13 @@
+root = true
+
+[zUtilities/*.{cpp,h}]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# Match the project's existing `Call( argument )` and `if ( condition )` style.
+cpp_space_after_keywords_in_control_flow_statements = true
+cpp_space_within_control_flow_statement_parentheses = true
+cpp_space_within_expression_parentheses = true
+cpp_space_within_argument_list_parentheses = true
+cpp_space_within_parameter_list_parentheses = true

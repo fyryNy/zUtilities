@@ -11,10 +11,10 @@ namespace GOTHIC_ENGINE {
       RecoveryVisualization = zoptions->ReadBool( PLUGIN_NAME, "RecoveryVisualization", true );
       StatusBarValueMode = zoptions->ReadInt( PLUGIN_NAME, "StatusBarValueMode", 1 );
       ShowEnemyBarAboveHim = zoptions->ReadBool( PLUGIN_NAME, "ShowEnemyBarAboveHim", true );
-      StatusBarNames = (A zoptions->ReadString( PLUGIN_NAME, "StatusBarNames", "" )).Split( "|" );
-      HealthBarPos = (A zoptions->ReadString( PLUGIN_NAME, "HealthBarPos", "" )).Split( "|" );
-      ManaBarPos = (A zoptions->ReadString( PLUGIN_NAME, "ManaBarPos", "" )).Split( "|" );
-      SwimBarPos = (A zoptions->ReadString( PLUGIN_NAME, "SwimBarPos", "" )).Split( "|" );
+      StatusBarNames = ( A zoptions->ReadString( PLUGIN_NAME, "StatusBarNames", "" ) ).Split( "|" );
+      HealthBarPos = ( A zoptions->ReadString( PLUGIN_NAME, "HealthBarPos", "" ) ).Split( "|" );
+      ManaBarPos = ( A zoptions->ReadString( PLUGIN_NAME, "ManaBarPos", "" ) ).Split( "|" );
+      SwimBarPos = ( A zoptions->ReadString( PLUGIN_NAME, "SwimBarPos", "" ) ).Split( "|" );
     }
   }
 
@@ -28,7 +28,7 @@ namespace GOTHIC_ENGINE {
     int GetRestoreValue();
     void DrawPrediction( int value );
     void PredictRestore();
-    
+
     void ChangeBarPos();
 
 
@@ -39,10 +39,10 @@ namespace GOTHIC_ENGINE {
     zCArray<zSTRING> symbols;
     zSTRING name;
     Array<string> userPos;
-    void PrintValue(oCNpc* npc);
-    virtual void PrintValueOutside(zSTRING str, oCNpc* npc);
+    void PrintValue( oCNpc* npc );
+    virtual void PrintValueOutside( zSTRING str, oCNpc* npc );
     bool IsBarActive();
-    StatusBar(oCViewStatusBar* bar);
+    StatusBar( oCViewStatusBar* bar );
     virtual zSTRING GetBarValue();
     bool CanLoop();
 

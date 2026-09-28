@@ -7,7 +7,7 @@ namespace GOTHIC_ENGINE {
   HOOK Hook_zCViewPrint_Blit PATCH( &zCViewPrint::Blit, &zCViewPrint::Blit_Union );
   void zCViewPrint::Blit_Union() {
     if ( !Options::AlternativeDialogueBoxes || this != oCInformationManager::GetInformationManager().DlgChoice ) {
-      THISCALL( Hook_zCViewPrint_Blit )();
+      THISCALL( Hook_zCViewPrint_Blit )( );
       return;
     }
 
@@ -23,13 +23,13 @@ namespace GOTHIC_ENGINE {
 
     choiceTextLine = 0;
 
-    THISCALL( Hook_zCViewPrint_Blit )();
+    THISCALL( Hook_zCViewPrint_Blit )( );
   }
 
   HOOK Hook_zCViewPrint_BlitTextCharacters PATCH( &zCViewPrint::BlitTextCharacters, &zCViewPrint::BlitTextCharacters_Union );
   void zCViewPrint::BlitTextCharacters_Union( zCViewText2* a1, zCFont* a2, zCOLOR& a3 ) {
     if ( !Options::AlternativeDialogueBoxes || this != oCInformationManager::GetInformationManager().DlgChoice ) {
-      THISCALL( Hook_zCViewPrint_BlitTextCharacters )(a1, a2, a3);
+      THISCALL( Hook_zCViewPrint_BlitTextCharacters )( a1, a2, a3 );
       return;
     }
 
@@ -37,7 +37,7 @@ namespace GOTHIC_ENGINE {
     int px = screen->nax( vx );
     a1->PixelPosition.X = px;
 
-    bool offLimits = VirtualSize.Y - SizeMargin[0].Y - SizeMargin[1].Y - screen->FontY() * (ListTextLines.GetNumInList() + 1) < 0;
+    bool offLimits = VirtualSize.Y - SizeMargin[0].Y - SizeMargin[1].Y - screen->FontY() * ( ListTextLines.GetNumInList() + 1 ) < 0;
     if ( !offLimits ) {
       int vy = VirtualSize.Y / 2 - screen->FontY() / 2 * ListTextLines.GetNumInList();
       vy += screen->FontY() * choiceTextLine;
@@ -47,13 +47,13 @@ namespace GOTHIC_ENGINE {
       a1->PixelPosition.Y = py;
     }
 
-    THISCALL( Hook_zCViewPrint_BlitTextCharacters )(a1, a2, a3);
+    THISCALL( Hook_zCViewPrint_BlitTextCharacters )( a1, a2, a3 );
   }
 
   HOOK Hook_zCView_DialogMessageCXY PATCH( &zCView::DialogMessageCXY, &zCView::DialogMessageCXY_Union );
   void zCView::DialogMessageCXY_Union( zSTRING const& a1, zSTRING const& a2, float a3, zCOLOR& a4 ) {
     if ( !Options::AlternativeDialogueBoxes || !playerHelper.IsInInfo() ) {
-      THISCALL( Hook_zCView_DialogMessageCXY )(a1, a2, a3, a4);
+      THISCALL( Hook_zCView_DialogMessageCXY )( a1, a2, a3, a4 );
       return;
     }
 
@@ -62,6 +62,6 @@ namespace GOTHIC_ENGINE {
       SetSize( 8192, vsizey );
     }
 
-    THISCALL( Hook_zCView_DialogMessageCXY )(a1, a2, a3, a4);
+    THISCALL( Hook_zCView_DialogMessageCXY )( a1, a2, a3, a4 );
   }
 }

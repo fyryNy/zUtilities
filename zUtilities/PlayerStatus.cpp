@@ -9,17 +9,17 @@ namespace GOTHIC_ENGINE {
 
     if ( visName_S.Search( ".SLW", 1 ) == -1 )
     {
-      THISCALL( Ivk_InitEffect_Union )();
+      THISCALL( Ivk_InitEffect_Union )( );
       return;
     }
-    
+
     vfxs.push_back( this );
     playerStatus.ResetTimeMultiplier();
 
-    THISCALL( Ivk_InitEffect_Union )();
+    THISCALL( Ivk_InitEffect_Union )( );
   }
 
-  HOOK Ivk_EndEffect_Union PATCH(&oCVisualFX::EndEffect, &oCVisualFX::EndEffect_Union);
+  HOOK Ivk_EndEffect_Union PATCH( &oCVisualFX::EndEffect, &oCVisualFX::EndEffect_Union );
   void oCVisualFX::EndEffect_Union( const int kill ) {
     if ( visName_S.Search( ".SLW", 1 ) == -1 )
     {
@@ -28,7 +28,7 @@ namespace GOTHIC_ENGINE {
     }
 
     auto it = std::find( vfxs.begin(), vfxs.end(), this );
-    if (it != vfxs.end())
+    if ( it != vfxs.end() )
     {
       vfxs.erase( std::remove( vfxs.begin(), vfxs.end(), this ), vfxs.end() );
     }
@@ -48,7 +48,7 @@ namespace GOTHIC_ENGINE {
 
   HOOK Ivk_CallOnStateFunc_Union PATCH( &oCMobInter::CallOnStateFunc, &oCMobInter::CallOnStateFunc_Union );
   void oCMobInter::CallOnStateFunc_Union( oCNpc* npc, int a1 ) {
-    THISCALL( Ivk_CallOnStateFunc_Union )(npc, a1);
+    THISCALL( Ivk_CallOnStateFunc_Union )( npc, a1 );
 
     if ( npc == player )
       playerStatus.TryAddStateFunc( this );
@@ -56,14 +56,14 @@ namespace GOTHIC_ENGINE {
 
   HOOK Ivk_GetStateEffectFunc_Union PATCH( &oCItem::GetStateEffectFunc, &oCItem::GetStateEffectFunc_Union );
   int oCItem::GetStateEffectFunc_Union( int a1 ) {
-    int result = THISCALL( Ivk_GetStateEffectFunc_Union )(a1);
-    playerStatus.stateFuncItem = (a1 == 0) ? this : nullptr;
+    int result = THISCALL( Ivk_GetStateEffectFunc_Union )( a1 );
+    playerStatus.stateFuncItem = ( a1 == 0 ) ? this : nullptr;
     return result;
   }
 
   HOOK Ivk_EV_UseItemToState_Union PATCH( &oCNpc::EV_UseItemToState, &oCNpc::EV_UseItemToState_Union );
   int oCNpc::EV_UseItemToState_Union( oCMsgManipulate* msg ) {
-    int result = THISCALL( Ivk_EV_UseItemToState_Union )(msg);
+    int result = THISCALL( Ivk_EV_UseItemToState_Union )( msg );
 
     if ( this == player && msg && msg->targetVob && playerStatus.stateFuncItem && playerStatus.stateFuncItem == msg->targetVob ) {
       playerStatus.TryAddStateFunc( msg->targetVob );
@@ -81,8 +81,8 @@ namespace GOTHIC_ENGINE {
 
       // Whenever the icon will visible or not is based on the npc dialogue including PICKPOCKET word which seems to be used consistently in mods as well.
       if ( !info->name.HasWordI( "pickpocket" ) && !info->name.HasWordI( "_steal" ) && !info->name.HasWordI( "pickme" ) )
-        continue;      
-      
+        continue;
+
       if ( info->name.HasWordI( "_DOIT" ) || info->name.HasWordI( "_TRY" ) )
         continue;
 
@@ -217,7 +217,7 @@ namespace GOTHIC_ENGINE {
   HOOK Hook_zCAICamera_CheckKeys PATCH( &zCAICamera::CheckKeys, &zCAICamera::CheckKeys_Union );
   void zCAICamera::CheckKeys_Union() {
     if ( !Options::UseTimeMultiplier || ztimer->factorMotion == 1.0f || !playerStatus.CanChangeZtimer() ) {
-      THISCALL( Hook_zCAICamera_CheckKeys )();
+      THISCALL( Hook_zCAICamera_CheckKeys )( );
       return;
     }
 
@@ -225,7 +225,7 @@ namespace GOTHIC_ENGINE {
     float motionFactorOld = ztimer->factorMotion;
     ztimer->frameTimeFloat = frameTimeOld / motionFactorOld;
     ztimer->factorMotion = 1.0f;
-    THISCALL( Hook_zCAICamera_CheckKeys )();
+    THISCALL( Hook_zCAICamera_CheckKeys )( );
     ztimer->frameTimeFloat = frameTimeOld;
     ztimer->factorMotion = motionFactorOld;
   }
@@ -233,7 +233,7 @@ namespace GOTHIC_ENGINE {
   HOOK Hook_oCAIHuman_PC_Turnings PATCH( &oCAIHuman::PC_Turnings, &oCAIHuman::PC_Turnings_Union );
   void oCAIHuman::PC_Turnings_Union( int forceRotation ) {
     if ( !Options::UseTimeMultiplier || ztimer->factorMotion == 1.0f || Pressed( GAME_LEFT ) || Pressed( GAME_RIGHT ) || !playerStatus.CanChangeZtimer() ) {
-      THISCALL( Hook_oCAIHuman_PC_Turnings )(forceRotation);
+      THISCALL( Hook_oCAIHuman_PC_Turnings )( forceRotation );
       return;
     }
 
@@ -241,7 +241,7 @@ namespace GOTHIC_ENGINE {
     float motionFactorOld = ztimer->factorMotion;
     ztimer->frameTimeFloat = frameTimeOld / motionFactorOld;
     ztimer->factorMotion = 1.0f;
-    THISCALL( Hook_oCAIHuman_PC_Turnings )(forceRotation);
+    THISCALL( Hook_oCAIHuman_PC_Turnings )( forceRotation );
     ztimer->frameTimeFloat = frameTimeOld;
     ztimer->factorMotion = motionFactorOld;
   };
@@ -252,10 +252,13 @@ namespace GOTHIC_ENGINE {
       return;
 
     ztimer->factorMotion = 1.0f;
+    lastAppliedMotion = 1.0f;
+    multiplierIndex = 0;
+    speedSuppressed = false;
   }
 
   void PlayerStatus::ResetSaveReminder() {
-    if (SaveLoadGameInfo.changeLevel)
+    if ( SaveLoadGameInfo.changeLevel )
     {
       return;
     }
@@ -274,22 +277,47 @@ namespace GOTHIC_ENGINE {
       return;
 
     if ( playerHelper.IsDead() || playerHelper.IsInInfo() || ogame->IsOnPause() ) {
-      if ( ztimer->factorMotion != 1.0f )
+      if ( !speedSuppressed ) {
+        if ( ztimer->factorMotion != 1.0f ) {
+          lastAppliedMotion = ztimer->factorMotion;
+          ztimer->factorMotion = 1.0f;
+          speedSuppressed = true;
+        }
+      }
+      else if ( ztimer->factorMotion != 1.0f ) {
+        lastAppliedMotion = ztimer->factorMotion;
         ztimer->factorMotion = 1.0f;
+      }
       return;
     }
 
-    if ( !zinput->KeyToggled( Options::KeyTimeMultiplier ) ) {
-      if ( ztimer->factorMotion != Options::TimeMultipliers[multiplierIndex] )
-        ztimer->factorMotion = Options::TimeMultipliers[multiplierIndex];
+    if ( speedSuppressed ) {
+      ztimer->factorMotion = lastAppliedMotion;
+      speedSuppressed = false;
+    }
+
+    if ( zinput->KeyToggled( Options::KeyTimeMultiplier ) ) {
+      multiplierIndex++;
+      if ( multiplierIndex < 0 || multiplierIndex >= Options::TimeMultipliers.GetNum() )
+        multiplierIndex = 0;
+
+      ztimer->factorMotion = Options::TimeMultipliers[multiplierIndex];
+      lastAppliedMotion = ztimer->factorMotion;
       return;
     }
 
-    multiplierIndex++;
-    if ( multiplierIndex < 0 || multiplierIndex >= Options::TimeMultipliers.GetNum() )
-      multiplierIndex = 0;
+    // If factorMotion was changed externally (e.g. by console command `ZTIMER MULTIPLIER`),
+    // adopt the new value instead of forcefully overriding it.
+    if ( ztimer->factorMotion != lastAppliedMotion ) {
+      lastAppliedMotion = ztimer->factorMotion;
 
-    ztimer->factorMotion = Options::TimeMultipliers[multiplierIndex];
+      for ( uint i = 0; i < Options::TimeMultipliers.GetNum(); i++ ) {
+        if ( Options::TimeMultipliers[i] == ztimer->factorMotion ) {
+          multiplierIndex = i;
+          break;
+        }
+      }
+    }
   }
 
   void PlayerStatus::ShowSystemTime() {
@@ -307,7 +335,7 @@ namespace GOTHIC_ENGINE {
     localtime_s( &timeStructure, &currentTime );
 
     str = ( timeStructure.tm_hour < 10 ? "0" : "" ) + Z timeStructure.tm_hour + ":"
-          + ( timeStructure.tm_min < 10 ? "0" : "" ) + Z timeStructure.tm_min;
+      + ( timeStructure.tm_min < 10 ? "0" : "" ) + Z timeStructure.tm_min;
 
     if ( Options::ShowSystemTime > 1 )
       str = str + ":" + ( timeStructure.tm_sec < 10 ? "0" : "" ) + Z timeStructure.tm_sec;
@@ -332,7 +360,7 @@ namespace GOTHIC_ENGINE {
     if ( Options::ShowGameTime ) {
       int day, hour, min;
       ogame->GetTime( day, hour, min );
-      str = (min > 9) ? Z hour + ":" + Z min : Z hour + ":0" + Z min;
+      str = ( min > 9 ) ? Z hour + ":" + Z min : Z hour + ":0" + Z min;
     }
 
     if ( Options::UseTimeMultiplier && ztimer->factorMotion != 1.0f ) {
@@ -384,7 +412,7 @@ namespace GOTHIC_ENGINE {
     else if ( amount < 50 )
       color = zCOLOR( 255, 218, 121 );
 
-    zSTRING texture = (weapon->HasFlag( ITM_FLAG_BOW )) ? "LABEL_MUN_BOW" : "LABEL_MUN_CROSSBOW";
+    zSTRING texture = ( weapon->HasFlag( ITM_FLAG_BOW ) ) ? "LABEL_MUN_BOW" : "LABEL_MUN_CROSSBOW";
 
     infoIcons++;
     color.alpha = ogame->hpBar->alpha;
@@ -408,8 +436,8 @@ namespace GOTHIC_ENGINE {
     }
 
     auto ElapsedTime = std::chrono::high_resolution_clock::now() - lastSaveTime;
-    auto ElapsedMins = std::chrono::duration_cast<std::chrono::minutes>(ElapsedTime);
-    auto ElapsedSeconds = std::chrono::duration_cast<std::chrono::seconds>(ElapsedTime - ElapsedMins);
+    auto ElapsedMins = std::chrono::duration_cast<std::chrono::minutes>( ElapsedTime );
+    auto ElapsedSeconds = std::chrono::duration_cast<std::chrono::seconds>( ElapsedTime - ElapsedMins );
     if ( ElapsedTime >= static_cast<std::chrono::minutes>( Options::SaveReminder ) )
     {
       zSTRING str = ( ElapsedMins.count() < 10 ? "0" : "" ) + Z ElapsedMins.count() + ":" + ( ElapsedSeconds.count() < 10 ? "0" : "" ) + Z static_cast<int>( ElapsedSeconds.count() );
@@ -417,7 +445,7 @@ namespace GOTHIC_ENGINE {
       zSTRING texture = "ICON_SAVE"; // https://game-icons.net/1x1/lorc/disc.html
 
       infoIcons++;
-      IconInfo icon = IconInfo(screen->FontY(), screen->FontY() * 2.5 * infoIcons, screen->FontY() * 0.9f, GFX_RED, texture, str);
+      IconInfo icon = IconInfo( screen->FontY(), screen->FontY() * 2.5 * infoIcons, screen->FontY() * 0.9f, GFX_RED, texture, str );
     }
   }
 

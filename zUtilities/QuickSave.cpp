@@ -20,7 +20,7 @@ namespace GOTHIC_ENGINE {
   HOOK Hook_zCMenu_HandleRun PATCH( &zCMenu::Run, &zCMenu::Run_Union );
   int zCMenu::Run_Union()
   {
-    int result = THISCALL( Hook_zCMenu_HandleRun )();
+    int result = THISCALL( Hook_zCMenu_HandleRun )( );
 
     if ( zCMenu::activeList.GetNum() == 0 )
       QuickSave::KeepClosingMenus = false;
@@ -57,7 +57,7 @@ namespace GOTHIC_ENGINE {
     if ( playerHelper.IsBusy() ) return true;
     if ( player->bodyState == BS_TAKEITEM ) return true;
     if ( player->bodyState == BS_MOBINTERACT ) return true;
-    if ( player->bodyState & BS_FLAG_INTERRUPTABLE && !(player->bodyState & BS_FLAG_FREEHANDS) ) return true;
+    if ( player->bodyState & BS_FLAG_INTERRUPTABLE && !( player->bodyState & BS_FLAG_FREEHANDS ) ) return true;
 
     return false;
   }
@@ -70,7 +70,7 @@ namespace GOTHIC_ENGINE {
     if ( playerHelper.IsDead() ) return false;
     if ( InInteraction() ) return false;
     if ( player->GetAnictrl()->state != zCAIPlayer::zMV_STATE_STAND ) return false;
-    if (player->HasBodyStateModifier(BS_MOD_TRANSFORMED)) return false;
+    if ( player->HasBodyStateModifier( BS_MOD_TRANSFORMED ) ) return false;
     //if ( ogame->game_testmode ) return false;
     //if ( !player->IsInFightMode_S(0) ) return false;
 
@@ -145,14 +145,14 @@ namespace GOTHIC_ENGINE {
         int const nextName = curName + 1;
         // Now we need to find a change from 0 -> 1 between maxName and nextName
         int changeIndex = -1;
-        int mask = ((int)1); // 0...01
-        for ( int i = 0; i < (sizeof( int ) * 8) - 1; ++i ) {
-          if ( (nextName & mask) > ( curName & mask ) ) {
+        int mask = ( (int)1 ); // 0...01
+        for ( int i = 0; i < ( sizeof( int ) * 8 ) - 1; ++i ) {
+          if ( ( nextName & mask ) > ( curName & mask ) ) {
             changeIndex = i;
             break;
           }
           // this operation moves 1 to the right, and resets first bit to 0, in order to check next bit
-          mask = (mask << 1) & (~((int)1)); // 1...10
+          mask = ( mask << 1 ) & ( ~( (int)1 ) ); // 1...10
         }
 
         if ( changeIndex != -1 ) {
@@ -233,7 +233,7 @@ namespace GOTHIC_ENGINE {
     gameMan->Read_Savegame( info->m_SlotNr );
 #endif
 
-    if( Options::PrintQuickSaveLoadInfo )
+    if ( Options::PrintQuickSaveLoadInfo )
       ogame->GetTextView()->Printwin( Z Options::LoadCompleted + " '" + Z info->m_Name + Z "' #" + Z info->m_SlotNr );
   }
 
@@ -273,7 +273,7 @@ namespace GOTHIC_ENGINE {
   }
 
   void QuickSave::Loop() {
-    if ( (isLoading && !ogame->IsOnPause()) || (isSaving && saveEnd) )
+    if ( ( isLoading && !ogame->IsOnPause() ) || ( isSaving && saveEnd ) )
       EndSaveLoad();
 
     if ( !Options::QuickSaveMode ) return;
@@ -287,12 +287,12 @@ namespace GOTHIC_ENGINE {
   void QuickSave::MenuLoop() {
     if ( !Options::QuickSaveMode || zCMenu::inGameMenu || isLoading ) return;
 
-    if ( ! ( Options::QuickLoadAfterGameStart || zinput->KeyToggled( Options::KeyQuickLoad ) ) ) return;
+    if ( !( Options::QuickLoadAfterGameStart || zinput->KeyToggled( Options::KeyQuickLoad ) ) ) return;
 
     oCSavegameInfo* info = gameMan->savegameManager->GetSavegame( iLastSaveSlot );
     if ( !info || !info->DoesSavegameExist() ) return;
 
-    LoadFromMainMenu();    
+    LoadFromMainMenu();
   }
 
   QuickSave::QuickSave() {

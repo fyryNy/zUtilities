@@ -1,0 +1,32 @@
+{
+    "C_Cpp.default.compilerPath": "/usr/bin/clang-cl",
+    "C_Cpp.default.compilerArgs": ["--target=i686-pc-windows-msvc", "/EHsc"],
+    "C_Cpp.default.intelliSenseMode": "windows-clang-x86",
+    "C_Cpp.default.cStandard": "c17",
+    "C_Cpp.default.cppStandard": "c++17",
+    "C_Cpp.default.forcedInclude": [
+        "${workspaceFolder}/cmake/IntelliSenseContext.h"
+    ],
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/zUtilities",
+        "${workspaceFolder}/zUtilities/ZenGin/Gothic_UserAPI",
+        "${env:HOME}/my_msvc/opt/Union/1.0m/Union/v1.0m/Include",
+        "${env:HOME}/my_msvc/opt/Union/1.0m/DirectX7/include",
+        "${env:HOME}/my_msvc/opt/msvc/VC/Tools/MSVC/14.51.36231/atlmfc/include",
+        "${env:HOME}/my_msvc/opt/msvc/VC/Tools/MSVC/14.51.36231/include",
+        "${env:HOME}/my_msvc/opt/msvc/Windows Kits/10/Include/10.0.26100.0/shared",
+        "${env:HOME}/my_msvc/opt/msvc/Windows Kits/10/Include/10.0.26100.0/ucrt",
+        "${env:HOME}/my_msvc/opt/msvc/Windows Kits/10/Include/10.0.26100.0/um",
+        "${env:HOME}/my_msvc/opt/msvc/Windows Kits/10/Include/10.0.26100.0/winrt"
+    ],
+    "files.associations": {
+        "*.inl": "cpp"
+    },
+    "[cpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools",
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.detectIndentation": false
+    },
+    "C_Cpp.formatting": "vcFormat"
+}

@@ -7,7 +7,7 @@ namespace GOTHIC_ENGINE {
   HOOK Hook_oCMobLockable_PickLock PATCH( &oCMobLockable::PickLock, &oCMobLockable::PickLock_Union );
   int oCMobLockable::PickLock_Union( oCNpc* npc, char key ) {
     if ( !Options::RememberLockCombination ) {
-      int result = THISCALL( Hook_oCMobLockable_PickLock )(npc, key);
+      int result = THISCALL( Hook_oCMobLockable_PickLock )( npc, key );
       return result;
     }
 
@@ -15,7 +15,7 @@ namespace GOTHIC_ENGINE {
     if ( pickLockNr < KnownLockCombination )
       pickLockNr = KnownLockCombination;
 
-    int result = THISCALL( Hook_oCMobLockable_PickLock )(npc, key);
+    int result = THISCALL( Hook_oCMobLockable_PickLock )( npc, key );
 
     // Update largest known combination
     if ( pickLockNr > KnownLockCombination )
@@ -27,7 +27,7 @@ namespace GOTHIC_ENGINE {
   HOOK Hook_oCMobInter_StopInteraction PATCH( &oCMobInter::StopInteraction, &oCMobInter::StopInteraction_Union );
   void oCMobInter::StopInteraction_Union( oCNpc* npc ) {
     if ( npc != player || !Options::RememberLockCombination ) {
-      THISCALL( Hook_oCMobInter_StopInteraction )(npc);
+      THISCALL( Hook_oCMobInter_StopInteraction )( npc );
       return;
     }
 
@@ -37,6 +37,6 @@ namespace GOTHIC_ENGINE {
       lockable->pickLockNr = 0;
     }
 
-    THISCALL( Hook_oCMobInter_StopInteraction )(npc);
+    THISCALL( Hook_oCMobInter_StopInteraction )( npc );
   }
 }

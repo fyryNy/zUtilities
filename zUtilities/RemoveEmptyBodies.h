@@ -6,7 +6,7 @@ namespace GOTHIC_ENGINE {
     int RemoveBodies;
 
     void RemoveEmptyBodies() {
-      RemoveBodies = zoptions->ReadInt( PLUGIN_NAME, "RemoveEmptyBodies", 0);
+      RemoveBodies = zoptions->ReadInt( PLUGIN_NAME, "RemoveEmptyBodies", 0 );
     }
   }
 }

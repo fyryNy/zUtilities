@@ -12,7 +12,7 @@ namespace GOTHIC_ENGINE {
 
     if ( !entry ) return;
 
-    zCOptionEntry* triviaEntry = new zCOptionEntry{ "", (A"; " + trivia + "\r\n\n") };
+    zCOptionEntry* triviaEntry = new zCOptionEntry{ "", ( A"; " + trivia + "\r\n\n" ) };
 
     int nextPos = section->entryList.Search( entry ) + 1;
 
@@ -37,7 +37,7 @@ namespace GOTHIC_ENGINE {
   }
 
   zCOLOR* zCOption::ReadColor( zSTRING const& sectionName, zSTRING const& entryName, char const* text ) {
-    Array<string> splitted = (A zoptions->ReadString( sectionName, entryName, text )).Split( "|" );
+    Array<string> splitted = ( A zoptions->ReadString( sectionName, entryName, text ) ).Split( "|" );
     Array<int> channels;
 
     for ( int i = 0; i < splitted.GetNum(); i++ ) {

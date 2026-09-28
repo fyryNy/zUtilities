@@ -297,24 +297,24 @@ namespace GOTHIC_ENGINE {
   }
 
   void DebugHelper::ShowTriggerBoxes() {
-    if (!Options::ShowTriggers) {
+    if ( !Options::ShowTriggers ) {
       return;
     }
 
     zCArray<zCVob*> listVobs;
-    player->CreateVobList(listVobs, 5000.0f);
-    for (int i = 0; i < listVobs.GetNumInList(); i++)
+    player->CreateVobList( listVobs, 5000.0f );
+    for ( int i = 0; i < listVobs.GetNumInList(); i++ )
     {
       auto vob = listVobs[i];
 
-      if (!vob)
+      if ( !vob )
         continue;
 
       auto trigger = vob->CastTo<zCTrigger>();
-      if (!trigger)
+      if ( !trigger )
         continue;
 
-      trigger->bbox3D.Draw(GFX_RED);
+      trigger->bbox3D.Draw( GFX_RED );
     }
   }
 
@@ -363,7 +363,7 @@ namespace GOTHIC_ENGINE {
     rightView->ClrPrintwin();
     textLinesLeft = 0;
     textLinesRight = 0;
-    
+
     ShowTriggerBoxes();
     ShowVobsVisualNames();
 

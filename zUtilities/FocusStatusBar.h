@@ -12,19 +12,19 @@ namespace GOTHIC_ENGINE {
   class FocusStatusBar : public StatusBar {
   private:
     zCView* protView;
-    void MoveFocusBar(int x, int y, oCNpc* npc);
-    bool TryShowProt(oCNpc* npc);
+    void MoveFocusBar( int x, int y, oCNpc* npc );
+    bool TryShowProt( oCNpc* npc );
     int GetProtMargin();
     int GetProtSize();
-    int GetProtStartX(FocusStatusProtectionPlacement placement);
-    int GetProtStartY(FocusStatusProtectionPlacement placement);
-    int CalcProtRenderWidth(std::vector<NpcProtectionStatus> statuses);
-    FocusStatusProtectionPlacement GetProtPlacement(oCNpc* npc);
-    virtual void PrintValueOutside(zSTRING str, oCNpc* npc) override;
+    int GetProtStartX( FocusStatusProtectionPlacement placement );
+    int GetProtStartY( FocusStatusProtectionPlacement placement );
+    int CalcProtRenderWidth( std::vector<NpcProtectionStatus> statuses );
+    FocusStatusProtectionPlacement GetProtPlacement( oCNpc* npc );
+    virtual void PrintValueOutside( zSTRING str, oCNpc* npc ) override;
 
   public:
     FocusStatusBar();
-    bool NeedAdjustPosition(int x, int y, oCNpc* npc);
+    bool NeedAdjustPosition( int x, int y, oCNpc* npc );
     virtual void Loop() override;
     virtual bool Init() override;
     virtual void Clear() override;

@@ -12,11 +12,11 @@ namespace GOTHIC_ENGINE {
 
   private:
     std::vector<oEIndexDamage> GetDamageIndexes();
-    bool CanRenderProtectionStatus(oCNpc* npc, oEIndexDamage damageIndex);
+    bool CanRenderProtectionStatus( oCNpc* npc, oEIndexDamage damageIndex );
 
   public:
-    std::vector<NpcProtectionStatus> GetProtectionVisibleStatuses(oCNpc* npc);
-    int GetProtectionStatusesVisibleCount(oCNpc* npc);
+    std::vector<NpcProtectionStatus> GetProtectionVisibleStatuses( oCNpc* npc );
+    int GetProtectionStatusesVisibleCount( oCNpc* npc );
   };
 
   NpcHelper npcHelper;

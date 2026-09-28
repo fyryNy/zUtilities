@@ -6,11 +6,11 @@ namespace GOTHIC_ENGINE {
   void zCMovementTracker::UpdatePlayerPos_Union( zVEC3 const& position ) {
     if ( Options::CenterInvItems && player->inventory2.IsOpen() && !player->inventory2.GetNextContainerLeft( &player->inventory2 ) ) {
       zVEC3 rightVector = camVob->GetRightVectorWorld() * 115.0f;
-      THISCALL( Hook_CMovementTracker_UpdatePlayerPos )(position + rightVector);
+      THISCALL( Hook_CMovementTracker_UpdatePlayerPos )( position + rightVector );
       return;
     }
 
-    THISCALL( Hook_CMovementTracker_UpdatePlayerPos )(position);
+    THISCALL( Hook_CMovementTracker_UpdatePlayerPos )( position );
   }
 
   zCWorld* renderWld = nullptr;
@@ -30,7 +30,7 @@ namespace GOTHIC_ENGINE {
 
         if ( container->viewItemInfoItem != view ) continue;
 
-        zCView* itemView = static_cast<zCView*>(view);
+        zCView* itemView = static_cast<zCView*>( view );
         IsCenterItem = true;
 
         if ( !renderNow ) {
@@ -46,16 +46,16 @@ namespace GOTHIC_ENGINE {
         itemView->psizey *= scale;
 
         // Position
-        itemView->pposy = (zrenderer->vid_ydim - itemView->psizey) / 2;
-        itemView->pposx = (zrenderer->vid_xdim - itemView->psizex) / 2;
+        itemView->pposy = ( zrenderer->vid_ydim - itemView->psizey ) / 2;
+        itemView->pposx = ( zrenderer->vid_xdim - itemView->psizex ) / 2;
 
 #if ENGINE < Engine_G2
         // Moves item when trading
         if ( player->trader )
           if ( container->right )
-            itemView->pposx = (zrenderer->vid_xdim - itemView->psizex) * 4 / 5;
+            itemView->pposx = ( zrenderer->vid_xdim - itemView->psizex ) * 4 / 5;
           else
-            itemView->pposx = (zrenderer->vid_xdim - itemView->psizex) / 5;
+            itemView->pposx = ( zrenderer->vid_xdim - itemView->psizex ) / 5;
 #else
         // G2 Item rotation
         if ( inv_animate ) {
@@ -76,7 +76,7 @@ namespace GOTHIC_ENGINE {
     // Draw item label
     if ( Options::LabelItems ) {
       if ( !Options::PutLabelBehind ) {
-        THISCALL( Hook_oCItem_RenderItem )(wld, view, rotate);
+        THISCALL( Hook_oCItem_RenderItem )( wld, view, rotate );
         ItemLabel label = ItemLabel( this, view );
         return;
       }
@@ -84,7 +84,7 @@ namespace GOTHIC_ENGINE {
       ItemLabel label = ItemLabel( this, view );
     }
 
-    THISCALL( Hook_oCItem_RenderItem )(wld, view, rotate);
+    THISCALL( Hook_oCItem_RenderItem )( wld, view, rotate );
   }
 
   void RenderSelectedItem() {
@@ -93,7 +93,7 @@ namespace GOTHIC_ENGINE {
 
     if ( player->inventory2.IsOpen() ) {
       oCItemContainer* leftInv = player->inventory2.GetNextContainerLeft( &player->inventory2 );
-      oCItem* item = (leftInv && leftInv->IsActive()) ? leftInv->GetSelectedItem() : player->inventory2.GetSelectedItem();
+      oCItem* item = ( leftInv && leftInv->IsActive() ) ? leftInv->GetSelectedItem() : player->inventory2.GetSelectedItem();
 
       renderNow = true;
       if ( item && renderWld && renderView ) {

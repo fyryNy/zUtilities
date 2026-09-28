@@ -2,6 +2,19 @@
 // Union SOURCE file
 
 namespace GOTHIC_ENGINE {
+  HOOK Hook_zCVob_Archive PATCH( &zCVob::Archive, &zCVob::Archive_Union );
+  void zCVob::Archive_Union( zCArchiver& ar ) {
+    // Persist the vob's real visibility without showing every hidden vob before a save.
+    const bool hiddenByNoGrass = ar.InSaveGame() && noGrass.IsHidden( this );
+    if ( hiddenByNoGrass )
+      showVisual = 1;
+
+    THISCALL( Hook_zCVob_Archive )( ar );
+
+    if ( hiddenByNoGrass )
+      showVisual = 0;
+  }
+
   void NoGrass::Update() {
     auto prevNoGrass = Options::NoGrass;
     auto prevNoGrassRemoveVobsWithDynamicCollisions = Options::NoGrassRemoveVobsWithDynamicCollisions;
@@ -16,6 +29,7 @@ namespace GOTHIC_ENGINE {
     if ( !zoptions->EntryExists( PLUGIN_NAME, "NoGrassVisualNames2" ) )
       zoptions->WriteString( PLUGIN_NAME, "NoGrassVisualNames2", "*duckweed*, *waterlili*", 0 );
 
+    Options::NoGrassVisualNames.clear();
     int vi = 0;
     while ( true ) {
       zSTRING entryName = zSTRING{ "NoGrassVisualNames" } + zSTRING{ vi++ };
@@ -36,7 +50,8 @@ namespace GOTHIC_ENGINE {
       auto visualsNamesList = visualsNamesLists.Split( "," );
       for ( auto& visualName : visualsNamesList ) {
         visualName.Shrink();
-        visualsNames.push_back( visualName );
+        if ( !visualName.IsEmpty() )
+          visualsNames.push_back( visualName );
       }
     }
   }
@@ -51,34 +66,19 @@ namespace GOTHIC_ENGINE {
     if ( !vob->GetVisual() )
       return false;
 
-    if ( vob->GetVisual()->GetVisualName().IsEmpty() )
-      return false;
-
-    if ( vob->GetVisual()->GetVisualName().HasWordI( ".PFX" ) )
-      return false;
-
     return true;
   }
 
+  bool NoGrass::IsHidden( zCVob* vob ) const {
+    return !hiddenVobs.empty() && hiddenVobs.find( vob ) != hiddenVobs.end();
+  }
+
   void NoGrass::RestoreVisibility() {
-    zCArray<zCVob*> vobList;
-    ogame->GetWorld()->SearchVobListByClass( zCVob::classDef, vobList, nullptr );
-    for ( int i = 0; i < vobList.GetNumInList(); i++ ) {
-      auto vob = vobList[i];
-
-      if ( !IsValidVob( vob ) )
-        continue;
-
-      if ( vob->showVisual )
-        continue;
-
-      auto vobVisualName = string( vob->GetVisual()->GetVisualName() );
-      if ( std::find( visualsHidden.begin(), visualsHidden.end(), vobVisualName ) != visualsHidden.end() ) {
+    for ( auto vob : hiddenVobs ) {
+      if ( vob )
         vob->showVisual = 1;
-      }
     }
-
-    visualsHidden.clear();
+    hiddenVobs.clear();
   }
 
   void NoGrass::UpdateVisuals() {
@@ -91,7 +91,13 @@ namespace GOTHIC_ENGINE {
       return;
 
     zCArray<zCVob*> vobList;
+    vobList.AllocAbs( 16384 );
     ogame->GetWorld()->SearchVobListByClass( zCVob::classDef, vobList, nullptr );
+
+    hiddenVobs.reserve( 4096 );
+    std::unordered_map<zCVisual*, bool> visualMatchCache;
+    visualMatchCache.reserve( 512 );
+
     for ( int i = 0; i < vobList.GetNumInList(); i++ ) {
       auto vob = vobList[i];
 
@@ -104,17 +110,29 @@ namespace GOTHIC_ENGINE {
       if ( !vob->showVisual )
         continue;
 
-      auto vobVisualName = string( vob->GetVisual()->GetVisualName() );
+      zCVisual* visual = vob->GetVisual();
+      auto it = visualMatchCache.find( visual );
+      bool isMatch = false;
 
-      /*if (std::find(visualsNames.begin(), visualsNames.end(), vobVisualName) == visualsNames.end())
-        continue;*/
-
-      for ( auto& visualName : visualsNames ) {
-        // if (vobVisualName.HasWordI(visualName)) {
-        if ( vobVisualName.CompareMaskedI( visualName ) ) {
-          vob->showVisual = 0;
-          visualsHidden.push_back( vobVisualName );
+      if ( it != visualMatchCache.end() ) {
+        isMatch = it->second;
+      }
+      else {
+        const zSTRING& vobVisualName = visual->GetVisualName();
+        if ( !vobVisualName.IsEmpty() && !vobVisualName.HasWordI( ".PFX" ) ) {
+          for ( auto& visualName : visualsNames ) {
+            if ( vobVisualName.CompareMaskedI( visualName ) ) {
+              isMatch = true;
+              break;
+            }
+          }
         }
+        visualMatchCache.insert( { visual, isMatch } );
+      }
+
+      if ( isMatch ) {
+        vob->showVisual = 0;
+        hiddenVobs.insert( vob );
       }
     }
   }
@@ -132,6 +150,10 @@ namespace GOTHIC_ENGINE {
       if ( !IsValidVob( vob ) )
         continue;
 
+      auto vobVisualName = vob->GetVisual()->GetVisualName();
+      if ( vobVisualName.IsEmpty() || vobVisualName.HasWordI( ".PFX" ) )
+        continue;
+
       // if (!Options::NoGrassRemoveVobsWithDynamicCollisions && vob->collDetectionDynamic)
       //   continue;
 
@@ -143,7 +165,6 @@ namespace GOTHIC_ENGINE {
       else
         textColor = GFX_WHITE;
 
-      auto vobVisualName = vob->GetVisual()->GetVisualName();
       if ( vob->collDetectionDynamic )
         vobVisualName += zSTRING{ " (dynamic)" };
 

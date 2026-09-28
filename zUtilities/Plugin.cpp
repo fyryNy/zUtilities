@@ -21,7 +21,7 @@ namespace GOTHIC_ENGINE {
   }
 
   void Game_Loop() {
-    for ( uint i = 0; i < popups.GetNum(); i++ )
+    for ( int i = (int)popups.GetNum() - 1; i >= 0; i-- )
       popups[i]->Update();
 
     quickSave->Loop();
@@ -41,14 +41,12 @@ namespace GOTHIC_ENGINE {
   void Game_SaveBegin() {
     quickSave->isSaving = true;
     playerStatus.Clear();
-    noGrass.RestoreVisibility();
   }
 
   void Game_SaveEnd() {
     quickSave->saveEnd = true;
     Archive();
     playerStatus.ResetSaveReminder();
-    noGrass.UpdateVisuals();
   }
 
   void LoadBegin() {
@@ -57,9 +55,15 @@ namespace GOTHIC_ENGINE {
     playerStatus.pickpocketInfos.EmptyList();
 #endif
     playerStatus.Clear();
-    for (; popups.GetNum() > 0; )
+    playerStatus.ResetTimeMultiplier();
+    for ( ; popups.GetNum() > 0; )
       delete popups[0];
     noGrass.RestoreVisibility();
+    lastActiveMunition = nullptr;
+#if ENGINE >= Engine_G2
+    vfxs.clear();
+#endif
+    playerTrfCopy = nullptr;
   }
 
   void LoadEnd() {

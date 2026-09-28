@@ -63,7 +63,7 @@ namespace GOTHIC_ENGINE {
     };
 
     void Update();
-    static bool WorldToView(const zVEC3& worldPos, zCView* view, zVEC2& pos);
+    static bool WorldToView( const zVEC3& worldPos, zCView* view, zVEC2& pos );
     DamagePopup( oCNpc* targetNpc, oCNpc::oSDamageDescriptor& desc, int dmgAmount, bool isCrit );
     ~DamagePopup();
   };

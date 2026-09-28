@@ -9,7 +9,7 @@ namespace GOTHIC_ENGINE {
     if ( this == player )
       playerTrfCopy = this;
 
-    THISCALL( Hook_oCNpc_CopyTransformSpellInvariantValuesTo )(npc);
+    THISCALL( Hook_oCNpc_CopyTransformSpellInvariantValuesTo )( npc );
   }
 
   // Inspiration @G2-Ucieczka - https://github.com/TheKetrab/G2-Ucieczka
@@ -19,17 +19,16 @@ namespace GOTHIC_ENGINE {
     zCVisual* visual = vob->GetVisual();
 
     if ( !npc || !visual || !this->IsSelfPlayer() || !this->IsHuman() || vob == playerTrfCopy || npc->guild != NPC_GIL_MEATBUG || npc->HasFlag( NPC_FLAG_IMMORTAL ) || !Options::TrampleMeatbugs ) {
-      THISCALL( Hook_oCNpc_OnTouch )(vob);
+      THISCALL( Hook_oCNpc_OnTouch )( vob );
       return;
     }
 
     bool largeMdlScale = false;
-    for ( auto i = 0; i < npc->model_scale.Length(); i++ )
-      if ( npc->model_scale[i] > 1.0 )
-        largeMdlScale = true;
+    if ( npc->model_scale[0] > 1.0f || npc->model_scale[1] > 1.0f || npc->model_scale[2] > 1.0f )
+      largeMdlScale = true;
 
     if ( visual->GetVisualName() != "MEATBUG.MDS" || largeMdlScale ) {
-      THISCALL( Hook_oCNpc_OnTouch )(vob);
+      THISCALL( Hook_oCNpc_OnTouch )( vob );
       return;
     }
 
@@ -49,6 +48,6 @@ namespace GOTHIC_ENGINE {
     //// Blood
     //oCVisualFX::CreateAndPlay( "BFX_PRESET2", npc, nullptr, 0, 0, 0, 0 );
 
-    THISCALL( Hook_oCNpc_OnTouch )(vob);
+    THISCALL( Hook_oCNpc_OnTouch )( vob );
   }
 }

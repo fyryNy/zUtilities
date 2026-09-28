@@ -1,0 +1,35 @@
+{
+    "configurations": [
+        {
+            "name": "Union 1.0m msvc-wine x86",
+            "includePath": [
+                "${workspaceFolder}/zUtilities",
+                "${workspaceFolder}/zUtilities/ZenGin/Gothic_UserAPI",
+                "${env:HOME}/my_msvc/opt/Union/1.0m/Union/v1.0m/Include",
+                "${env:HOME}/my_msvc/opt/Union/1.0m/DirectX7/include",
+                "${env:HOME}/my_msvc/opt/msvc/VC/Tools/MSVC/14.51.36231/atlmfc/include",
+                "${env:HOME}/my_msvc/opt/msvc/VC/Tools/MSVC/14.51.36231/include",
+                "${env:HOME}/my_msvc/opt/msvc/Windows Kits/10/Include/10.0.26100.0/shared",
+                "${env:HOME}/my_msvc/opt/msvc/Windows Kits/10/Include/10.0.26100.0/ucrt",
+                "${env:HOME}/my_msvc/opt/msvc/Windows Kits/10/Include/10.0.26100.0/um",
+                "${env:HOME}/my_msvc/opt/msvc/Windows Kits/10/Include/10.0.26100.0/winrt"
+            ],
+            "defines": [
+                "WIN32", "_WIN32", "_M_IX86=600", "_WINDOWS", "_USRDLL",
+                "GOTHICPLUGIN_EXPORTS", "_WINDLL", "_MBCS"
+            ],
+            "compilerPath": "/usr/bin/clang-cl",
+            "compilerArgs": ["--target=i686-pc-windows-msvc", "/EHsc"],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-clang-x86",
+            "forcedInclude": [
+                "${workspaceFolder}/cmake/IntelliSenseContext.h"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true
+            }
+        }
+    ],
+    "version": 4
+}

@@ -7,14 +7,14 @@ namespace GOTHIC_ENGINE {
   HOOK Hook_oCItemContainer_Draw PATCH( &oCItemContainer::Draw, &oCItemContainer::Draw_Union );
   void oCItemContainer::Draw_Union() {
     canDrawLabels = true;
-    THISCALL( Hook_oCItemContainer_Draw )();
+    THISCALL( Hook_oCItemContainer_Draw )( );
     canDrawLabels = false;
   }
 
   HOOK Hook_oCItemContainer_DrawItemInfo PATCH( &oCItemContainer::DrawItemInfo, &oCItemContainer::DrawItemInfo_Union );
   void oCItemContainer::DrawItemInfo_Union( oCItem* item, zCWorld* world ) {
     canDrawLabels = false;
-    THISCALL( Hook_oCItemContainer_DrawItemInfo )(item, world);
+    THISCALL( Hook_oCItemContainer_DrawItemInfo )( item, world );
     canDrawLabels = true;
   }
 
@@ -28,7 +28,7 @@ namespace GOTHIC_ENGINE {
         maxCond = this->cond_value[i];
       }
 
-    return (maxIndex != -1) ? this->cond_atr[maxIndex] : -1;
+    return ( maxIndex != -1 ) ? this->cond_atr[maxIndex] : -1;
   }
 
   int oCItem::GetStateFunc() {
@@ -65,7 +65,7 @@ namespace GOTHIC_ENGINE {
     }
 
     static const zCPar_Symbol* ITEM_ARMREIF = parser->GetSymbol( "ITEM_ARMREIF" );
-    static const int ITM_FLAG_ARMREIF = (ITEM_ARMREIF) ? ITEM_ARMREIF->single_intdata : Invalid;
+    static const int ITM_FLAG_ARMREIF = ( ITEM_ARMREIF ) ? ITEM_ARMREIF->single_intdata : Invalid;
 
     if ( ITM_FLAG_ARMREIF && item->HasFlag( ITM_CAT_MAGIC ) ) {
       if ( item->GetInstanceName().StartWith( "ITBR" ) ) {
@@ -246,7 +246,7 @@ namespace GOTHIC_ENGINE {
         texture = "DOCS"; // https://game-icons.net/1x1/lorc/tied-scroll.html
       }
 
-      color = (!playerStatus.KnowStateFunc( item )) ? statePink : color;
+      color = ( !playerStatus.KnowStateFunc( item ) ) ? statePink : color;
       return;
     }
 
@@ -257,7 +257,7 @@ namespace GOTHIC_ENGINE {
     }
 
     static const zCPar_Symbol* TRADE_CURRENCY_INSTANCE = parser->GetSymbol( "TRADE_CURRENCY_INSTANCE" );
-    if ( TRADE_CURRENCY_INSTANCE && TRADE_CURRENCY_INSTANCE->stringdata == item->GetInstanceName()  ) {
+    if ( TRADE_CURRENCY_INSTANCE && TRADE_CURRENCY_INSTANCE->stringdata == item->GetInstanceName() ) {
       color = goldYellow;
       texture = "MONEY"; // https://game-icons.net/1x1/delapouite/two-coins.html
       return;
@@ -296,13 +296,13 @@ namespace GOTHIC_ENGINE {
     if ( !CanDrawLabel() )
       return;
 
-    zCView* itemView = dynamic_cast<zCView*>(viewBase);
+    zCView* itemView = dynamic_cast<zCView*>( viewBase );
     if ( !itemView )
       return;
 
     SetLabelParams();
 
-    int startPos = (item == player->inventory2.GetSelectedItem()) ? 500 : 250;
+    int startPos = ( item == player->inventory2.GetSelectedItem() ) ? 500 : 250;
 
     int endPos = startPos + 2000 * Options::LabelScale;
 

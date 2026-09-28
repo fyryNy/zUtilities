@@ -54,8 +54,8 @@ namespace GOTHIC_ENGINE {
       zoptions->AddTrivia( PLUGIN_NAME, "ShowSystemTime", "... on screen display of system time (24H format), (0) - 'Disabled', (1) - 'Hour:Minute format', (2) - 'Hour:Minute:Second format'" );
       zoptions->AddTrivia( PLUGIN_NAME, "ShowGameTime", "... enables (1) or disables (0) on screen display of in game time" );
       zoptions->AddTrivia( PLUGIN_NAME, "ShowMunitionAmount", "... enables (1) or disables (0) on screen display of currently used munition amount" );
-      zoptions->AddTrivia( PLUGIN_NAME, "ShowTargetProtection", "... enables for currently equipped weapon (1) or shows all protection stats (2) or disables (0) protection icon and value next to the focused npc hp bar");
-      zoptions->AddTrivia( PLUGIN_NAME, "ShowProtOnlyInFight", "... enables (1) or disables (0) showing protection stats only during combat");
+      zoptions->AddTrivia( PLUGIN_NAME, "ShowTargetProtection", "... enables for currently equipped weapon (1) or shows all protection stats (2) or disables (0) protection icon and value next to the focused npc hp bar" );
+      zoptions->AddTrivia( PLUGIN_NAME, "ShowProtOnlyInFight", "... enables (1) or disables (0) showing protection stats only during combat" );
       zoptions->AddTrivia( PLUGIN_NAME, "ShowProtAllDamageTypes", "... enables (1) or disables (0) showing all protection stats, even if they are 0" );
 #if ENGINE >= Engine_G2
       zoptions->AddTrivia( PLUGIN_NAME, "ShowPickpocketIcon", "... enables (1) or disables (0) coin icon next to the focused npc name when it can be pickpocketed" );
@@ -102,7 +102,7 @@ namespace GOTHIC_ENGINE {
       zoptions->AddTrivia( PLUGIN_NAME, "AlternativeDialogueBoxes", "... enables (1) or disables (0) alternative dialogue boxes style" );
       zoptions->AddTrivia( PLUGIN_NAME, "SelectedDialogueColor", "... defines color of selected line in dialogues" + nline + "... use 'R|G|B' or 'R|G|B|A' format" + nline + "... leave empty to use default color" );
 
-      zoptions->AddTrivia( PLUGIN_NAME, "SaveReminder", "... Time in minutes after which the reminder to save the game appears on the screen" + nline + "... set to -1 to disable");
+      zoptions->AddTrivia( PLUGIN_NAME, "SaveReminder", "... Time in minutes after which the reminder to save the game appears on the screen" + nline + "... set to -1 to disable" );
       zoptions->AddTrivia( PLUGIN_NAME, "RemoveEmptyBodies", "... removing of dead empty bodies from the world" + nline + "... 0 - turned off" + nline + "... 1 - bodies fade away over time" + nline + "... 2 - bodies are removed immediately" );
 
       zoptions->AddTrivia( PLUGIN_NAME, "NoGrass", "... enables (1) or disables (0) hiding visuals for grass and other specified vobs" );

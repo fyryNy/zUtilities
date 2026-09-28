@@ -30,7 +30,7 @@ namespace GOTHIC_ENGINE {
       return false;
 
 #if ENGINE >= Engine_G2
-    int talent = (desc.pItemWeapon->HasFlag( ITM_FLAG_2HD_SWD ) || desc.pItemWeapon->HasFlag( ITM_FLAG_2HD_AXE ))
+    int talent = ( desc.pItemWeapon->HasFlag( ITM_FLAG_2HD_SWD ) || desc.pItemWeapon->HasFlag( ITM_FLAG_2HD_AXE ) )
       ? NPC_HITCHANCE_2H : NPC_HITCHANCE_1H;
 
     return dmgRand < desc.pNpcAttacker->GetHitChance( talent );
@@ -42,7 +42,7 @@ namespace GOTHIC_ENGINE {
   HOOK Ivk_OnDamage_Hit_Union PATCH( &oCNpc::OnDamage_Hit, &oCNpc::OnDamage_Hit_Union );
   void oCNpc::OnDamage_Hit_Union( oSDamageDescriptor& desc ) {
     if ( !Options::DamagePopupMode ) {
-      THISCALL( Ivk_OnDamage_Hit_Union )(desc);
+      THISCALL( Ivk_OnDamage_Hit_Union )( desc );
       return;
     }
 
@@ -55,13 +55,13 @@ namespace GOTHIC_ENGINE {
     int initialHp = this->attribute[NPC_ATR_HITPOINTS];
 
     oCNpc::oSDamageDescriptor descOld = desc;
-    THISCALL( Ivk_OnDamage_Hit_Union )(desc);
+    THISCALL( Ivk_OnDamage_Hit_Union )( desc );
 
     int hpDiff = initialHp - this->attribute[NPC_ATR_HITPOINTS];
 
 #if ENGINE >= Engine_G2
     if ( ptd->_holdrand != seed ) {
-      int nextRand = (((seed * 214013L + 2531011L) >> 16) & 0x7fff);
+      int nextRand = ( ( ( seed * 214013L + 2531011L ) >> 16 ) & 0x7fff );
       isCrit = IsCrit( desc, nextRand % 100 );
     }
 #else
@@ -171,7 +171,7 @@ namespace GOTHIC_ENGINE {
   }
 
   void DamagePopup::SetScale() {
-    scale = (playerHelper.GetSysScale()) ? 1.15f : 1.0f;
+    scale = ( playerHelper.GetSysScale() ) ? 1.15f : 1.0f;
     scale *= Options::DamagePopupScale;
 
     float baseScale = scale;
@@ -187,7 +187,7 @@ namespace GOTHIC_ENGINE {
   }
 
   float DamagePopup::GetRandomDist( float start, int random, bool invertable ) {
-    float dist = start + (float)(randomizer.Random( 0, random ));
+    float dist = start + (float)( randomizer.Random( 0, random ) );
 
     if ( invertable && randomizer.Random( 0, 1 ) )
       return -dist;
@@ -234,9 +234,9 @@ namespace GOTHIC_ENGINE {
     vpPos.right = vpPos.left + width;
     vpPos.bottom = vpPos.top + height;
 
-    for ( int i = 0; popups[i] != this; i++ )
+    for ( int i = 0; i < popups.GetNum() && popups[i] != this; i++ )
       if ( Intersects( vpPos, popups[i]->vpPos ) ) {
-        int deltaY = (popups[i]->vpPos.bottom - vpPos.top) / 3.0f;
+        int deltaY = ( popups[i]->vpPos.bottom - vpPos.top ) / 3.0f;
         vpPos.top += deltaY;
         vpPos.bottom += deltaY;
         vpOffset[VY] += deltaY;
@@ -271,12 +271,12 @@ namespace GOTHIC_ENGINE {
     if ( lifetime < 0.3f )
       scaling *= Scale( lifetime, 0.3f ) * 1.5f;
     else if ( lifetime < 0.4f )
-      scaling *= 1.5f - (1 - Scale( 0.4f - lifetime, 0.4f )) * 0.5f;
+      scaling *= 1.5f - ( 1 - Scale( 0.4f - lifetime, 0.4f ) ) * 0.5f;
 
     float fadingTime = 0.2f;
 
     if ( lifetime > currentLifetimeLimit - fadingTime )
-      alpha = 255.0f * (currentLifetimeLimit - lifetime) * fadingTime * 10.0f;
+      alpha = 255.0f * ( currentLifetimeLimit - lifetime ) * fadingTime * 10.0f;
 
     Print( screen, anchorPos + offset, zVEC2( scaling ) );
   }
@@ -290,7 +290,7 @@ namespace GOTHIC_ENGINE {
       return;
 
     color.alpha = alpha;
-    zCOLOR textColor = (Options::DamagePopupColorOnlyIcon) ? zCOLOR( 240, 220, 194, alpha ) : color;
+    zCOLOR textColor = ( Options::DamagePopupColorOnlyIcon ) ? zCOLOR( 240, 220, 194, alpha ) : color;
     zCOLOR iconColor = color;
 
     zSTRING text = dmgAmount;
@@ -351,7 +351,7 @@ namespace GOTHIC_ENGINE {
     creationTimeInSecs = ztimer->totalTimeFloat / 1000.0f;
     lastAnchorUpdate = creationTimeInSecs;
     anchorPos = target->GetPositionWorld();
-    anchorPos[VY] += (target->bbox3D.maxs[VY] - target->bbox3D.mins[VY]) * anchorStartPosMultiplier;
+    anchorPos[VY] += ( target->bbox3D.maxs[VY] - target->bbox3D.mins[VY] ) * anchorStartPosMultiplier;
     vpOffset = zVEC2( 0, 0 );
     CalcOffset( 0 );
     Update();

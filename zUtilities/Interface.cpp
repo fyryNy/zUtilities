@@ -8,7 +8,7 @@ using namespace Gdiplus;
 // Static RTTI DynamicCast pointer
 #if _DLL != 1
 extern void* __cdecl __RTDynamicCast( void*, long, void*, void*, int );
-extern "C" __declspec(dllexport)
+extern "C" __declspec( dllexport )
 uint RTDynamicCast_MT = (uint)__RTDynamicCast;
 #endif
 

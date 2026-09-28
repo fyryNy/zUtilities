@@ -3,6 +3,8 @@
 
 // Automatically generated block
 #include <chrono>
+#include <unordered_set>
+#include <unordered_map>
 #pragma region Includes
 #include "Const.h"
 #include "Colors.h"

@@ -7,7 +7,7 @@ namespace GOTHIC_ENGINE {
     if ( focusColor.CanPrintFocus( this, x, y, text ) )
       return;
 
-    THISCALL( Ivk_Print_Union )(x, y, text);
+    THISCALL( Ivk_Print_Union )( x, y, text );
   }
 
   int oCNpc::GetAivar( zSTRING aivar ) {
@@ -22,10 +22,10 @@ namespace GOTHIC_ENGINE {
     zCPar_Symbol* sym = nullptr;
 
     sym = parser->GetSymbol( "NPCTYPE_FRIEND" );
-    TYPE_FRIEND = (sym) ? sym->single_intdata : Invalid;
+    TYPE_FRIEND = ( sym ) ? sym->single_intdata : Invalid;
 
     sym = parser->GetSymbol( "CRIME_MURDER" );
-    CRIME_MURDER = (sym) ? sym->single_intdata : Invalid;
+    CRIME_MURDER = ( sym ) ? sym->single_intdata : Invalid;
   }
 
   bool FocusColor::CanStealNow( oCItem* item ) {
@@ -41,10 +41,10 @@ namespace GOTHIC_ENGINE {
       return false;
 
     static const zCPar_Symbol* sym1 = parser->GetSymbol( "PERC_DIST_INDOOR_HEIGHT" );
-    static const int PERC_DIST_INDOOR_HEIGHT = (sym1) ? sym1->single_intdata : 250;
+    static const int PERC_DIST_INDOOR_HEIGHT = ( sym1 ) ? sym1->single_intdata : 250;
 
     static const zCPar_Symbol* sym2 = parser->GetSymbol( "PERC_DIST_ACTIVE_MAX" );
-    static const int PERC_DIST_ACTIVE_MAX = (sym2) ? sym2->single_intdata : 2000;
+    static const int PERC_DIST_ACTIVE_MAX = ( sym2 ) ? sym2->single_intdata : 2000;
 
     oCPortalRoom* playerRoom = player->GetCurrentPortalRoom();
 
@@ -81,7 +81,7 @@ namespace GOTHIC_ENGINE {
         continue;
 
       if ( !npc->CanSee( player, 0 ) ) {
-        if ( (npc->IsAIState( ZS_Clear ) || npc->IsAIState( ZS_Observe )) && npc->IsInRoomWith( player ) )
+        if ( ( npc->IsAIState( ZS_Clear ) || npc->IsAIState( ZS_Observe ) ) && npc->IsInRoomWith( player ) )
           return false;
 
         continue;
@@ -139,8 +139,8 @@ namespace GOTHIC_ENGINE {
     static const zCPar_Symbol* ABSOLUTIONLEVEL_Farm = parser->GetSymbol( "ABSOLUTIONLEVEL_Farm" );
     static const zCPar_Symbol* ABSOLUTIONLEVEL_BL = parser->GetSymbol( "ABSOLUTIONLEVEL_BL" );
 
-    if ( (NPCTYPE_OCAMBIENT && slf->npcType == NPCTYPE_OCAMBIENT->single_intdata)
-      || (NPCTYPE_OCMAIN && slf->npcType == NPCTYPE_OCMAIN->single_intdata) ) {
+    if ( ( NPCTYPE_OCAMBIENT && slf->npcType == NPCTYPE_OCAMBIENT->single_intdata )
+      || ( NPCTYPE_OCMAIN && slf->npcType == NPCTYPE_OCMAIN->single_intdata ) ) {
       if ( slf->guild == NPC_GIL_PALADIN || slf->guild == NPC_GIL_MILIZ || slf->guild == NPC_GIL_VOLK )
         if ( ABSOLUTIONLEVEL_OldCamp ) return ABSOLUTIONLEVEL_OldCamp->single_intdata;
     }
@@ -153,8 +153,8 @@ namespace GOTHIC_ENGINE {
     else if ( slf->guild == NPC_GIL_BAUERN ) {
       if ( ABSOLUTIONLEVEL_Farm ) return ABSOLUTIONLEVEL_Farm->single_intdata;
     }
-    else if ( (NPCTYPE_BL_AMBIENT && slf->npcType == NPCTYPE_BL_AMBIENT->single_intdata)
-      || (NPCTYPE_BL_MAIN && slf->npcType == NPCTYPE_BL_MAIN->single_intdata) ) {
+    else if ( ( NPCTYPE_BL_AMBIENT && slf->npcType == NPCTYPE_BL_AMBIENT->single_intdata )
+      || ( NPCTYPE_BL_MAIN && slf->npcType == NPCTYPE_BL_MAIN->single_intdata ) ) {
       if ( ABSOLUTIONLEVEL_BL ) return ABSOLUTIONLEVEL_BL->single_intdata;
     }
 
@@ -178,7 +178,13 @@ namespace GOTHIC_ENGINE {
 
   zCOLOR FocusColor::NpcColor( oCNpc* npc ) {
     if ( npc->attribute[NPC_ATR_HITPOINTS] <= 0 ) {
-      if ( !npc->stealcontainer->contList.GetNumInList() )
+      bool invEmpty = false;
+#if ENGINE <= Engine_G2
+      invEmpty = npc->IsInventoryEmpty( true, false );
+#else
+      invEmpty = npc->IsInventoryEmpty( true, true );
+#endif
+      if ( invEmpty )
         return zCOLOR( 175, 175, 175 );
       else
         return colDefault;
@@ -189,25 +195,25 @@ namespace GOTHIC_ENGINE {
 
 #if ENGINE >= Engine_G2
     if ( npc->IsHostile( player ) && npc->GetPermAttitude( player ) == NPC_ATT_HOSTILE
-      || (npc->enemy == player && npc->IsAIState( ZS_Attack ) && HasReasonToKill( npc )) )
+      || ( npc->enemy == player && npc->IsAIState( ZS_Attack ) && HasReasonToKill( npc ) ) )
       return zCOLOR( 255, 0, 0 );
 
-    if ( npc->IsAngry( player ) || (npc->enemy == player && npc->IsAIState( ZS_Attack )) )
+    if ( npc->IsAngry( player ) || ( npc->enemy == player && npc->IsAIState( ZS_Attack ) ) )
       return zCOLOR( 255, 180, 0 );
 
     int day, hour, min;
     ogame->GetTime( day, hour, min );
 
     if ( npc->GetAivar( "AIV_NpcSawPlayerCommit" )
-      && !(npc->GetAivar( "AIV_NpcSawPlayerCommit" ) < CRIME_MURDER && npc->GetAivar( "AIV_NpcSawPlayerCommitDay" ) < day - 2)
-      && !(npc->GetAivar( "AIV_CrimeAbsolutionLevel" ) < GetAbsolutionLevel( npc )) )
+      && !( npc->GetAivar( "AIV_NpcSawPlayerCommit" ) < CRIME_MURDER && npc->GetAivar( "AIV_NpcSawPlayerCommitDay" ) < day - 2 )
+      && !( npc->GetAivar( "AIV_CrimeAbsolutionLevel" ) < GetAbsolutionLevel( npc ) ) )
       return zCOLOR( 255, 180, 0 );
 #else
-    if ( (npc->IsHostile( player ) && npc->GetPermAttitude( player ) == NPC_ATT_HOSTILE)
-      || (npc->enemy == player && npc->IsAIState( ZS_Attack ) && npc->GetAivar( "AIV_ATTACKREASON" )) )
+    if ( ( npc->IsHostile( player ) && npc->GetPermAttitude( player ) == NPC_ATT_HOSTILE )
+      || ( npc->enemy == player && npc->IsAIState( ZS_Attack ) && npc->GetAivar( "AIV_ATTACKREASON" ) ) )
       return zCOLOR( 255, 0, 0 );
 
-    if ( (npc->IsAngry( player ) || npc->enemy == player) && (npc->IsAIState( ZS_Attack ) || npc->IsAIState( ZS_ReactToDamage )) )
+    if ( ( npc->IsAngry( player ) || npc->enemy == player ) && ( npc->IsAIState( ZS_Attack ) || npc->IsAIState( ZS_ReactToDamage ) ) )
       return zCOLOR( 255, 180, 0 );
 #endif
 
@@ -217,7 +223,7 @@ namespace GOTHIC_ENGINE {
     if ( npc->GetAivar( "AIV_PARTYMEMBER" ) )
       return zCOLOR( 51, 235, 255 );
 
-    if ( (npc->IsFriendly( player ) || npc->npcType == TYPE_FRIEND) )
+    if ( ( npc->IsFriendly( player ) || npc->npcType == TYPE_FRIEND ) )
       return zCOLOR( 0, 255, 0 );
 
     if ( ogame->GetGuilds()->GetAttitude( npc->guild, player->guild ) == NPC_ATT_FRIENDLY )
@@ -227,15 +233,28 @@ namespace GOTHIC_ENGINE {
   }
 
   zCOLOR FocusColor::LockableColor( oCMobLockable* lockable ) {
-    if ( lockable->locked )
-      if ( lockable->keyInstance.Length() && lockable->pickLockStr.Length() )
-        return zCOLOR( 255, 135, 150 );
-      else if ( lockable->keyInstance.Length() )
-        return zCOLOR( 255, 20, 20 );
+    if ( lockable->locked ) {
+      if ( lockable->keyInstance.Length() && lockable->pickLockStr.Length() ) {
+        if ( player->IsInInv( lockable->keyInstance, 1 ) ) {
+          return zCOLOR( 225, 100, 200 );
+        }
+        else {
+          return zCOLOR( 255, 135, 150 );
+        }
+      }
+      else if ( lockable->keyInstance.Length() ) {
+        if ( player->IsInInv( lockable->keyInstance, 1 ) ) {
+          return zCOLOR( 200, 0, 200 );
+        }
+        else {
+          return zCOLOR( 255, 20, 20 );
+        }
+      }
       else if ( lockable->pickLockStr.Length() )
         return zCOLOR( 255, 175, 0 );
       else
         return zCOLOR( 175, 175, 175 );
+    }
 
     if ( oCMobContainer* container = lockable->CastTo<oCMobContainer>() )
       if ( container->containList.GetNumInList() )
@@ -364,15 +383,15 @@ namespace GOTHIC_ENGINE {
 
 #if ENGINE >= Engine_G2
     if ( Options::ShowPickpocketIcon && playerStatus.CanPickpocketNpc( npc ) ) {
-      zCOLOR color = zCOLOR( 241, 196, 15, ogame->hpBar->alpha );
+      zCOLOR color = zCOLOR( 241, 196, 15, ( ogame->hpBar ? ogame->hpBar->alpha : 255 ) );
       zSTRING texture = "LABEL_MONEY"; // https://game-icons.net/1x1/delapouite/two-coins.html
-      IconInfo icon = IconInfo( startX + margin * iconNr + size * (iconNr++ - 1), y, size, color, texture );
+      IconInfo icon = IconInfo( startX + margin * iconNr + size * ( iconNr++ - 1 ), y, size, color, texture );
     }
 #endif
     if ( Options::ShowHumanNpcXpRewardIcon && playerStatus.IsHumanNpcEligibleForXpReward( npc ) ) {
-      zCOLOR color = zCOLOR( 108, 69, 186, ogame->hpBar->alpha );
+      zCOLOR color = zCOLOR( 108, 69, 186, ( ogame->hpBar ? ogame->hpBar->alpha : 255 ) );
       zSTRING texture = "ICON_PUNCH"; // https://game-icons.net/1x1/lorc/punch.html
-      IconInfo icon = IconInfo( startX + margin * iconNr + size * (iconNr++ - 1), y, size, color, texture );
+      IconInfo icon = IconInfo( startX + margin * iconNr + size * ( iconNr++ - 1 ), y, size, color, texture );
     }
   }
 

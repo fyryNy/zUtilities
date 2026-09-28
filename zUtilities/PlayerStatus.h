@@ -3,7 +3,7 @@
 
 namespace GOTHIC_ENGINE {
   namespace Options {
-    bool ShowGameTime, ShowMunitionAmount, ShowTargetProtection, ShowPickpocketIcon, UseTimeMultiplier, ShowCurrWeapProtOnly, ShowProtOnlyInFight,ShowProtAllDamageTypes;
+    bool ShowGameTime, ShowMunitionAmount, ShowTargetProtection, ShowPickpocketIcon, UseTimeMultiplier, ShowCurrWeapProtOnly, ShowProtOnlyInFight, ShowProtAllDamageTypes;
     bool ShowHumanNpcXpRewardIcon;
     int ShowSystemTime, KeyTimeMultiplier;
     Array<float> TimeMultipliers;
@@ -26,17 +26,17 @@ namespace GOTHIC_ENGINE {
       for ( int i = 0; i < MulStrings.GetNum(); i++ )
         TimeMultipliers.Insert( MulStrings[i].Shrink().ToReal32() );
 
-      SaveReminder = zoptions->ReadInt(PLUGIN_NAME, "SaveReminder", 5);
+      SaveReminder = zoptions->ReadInt( PLUGIN_NAME, "SaveReminder", 5 );
 
-      auto showTargetProtectionValue = zoptions->ReadInt(PLUGIN_NAME, "ShowTargetProtection", true);
-      if (showTargetProtectionValue < 0 || showTargetProtectionValue > 2) {
+      auto showTargetProtectionValue = zoptions->ReadInt( PLUGIN_NAME, "ShowTargetProtection", true );
+      if ( showTargetProtectionValue < 0 || showTargetProtectionValue > 2 ) {
         return;
       }
 
       ShowTargetProtection = showTargetProtectionValue >= 1;
       ShowCurrWeapProtOnly = showTargetProtectionValue == 1;
-      ShowProtOnlyInFight = zoptions->ReadBool(PLUGIN_NAME, "ShowProtOnlyInFight", true);
-      ShowProtAllDamageTypes = zoptions->ReadBool(PLUGIN_NAME, "ShowProtAllDamageTypes", false);
+      ShowProtOnlyInFight = zoptions->ReadBool( PLUGIN_NAME, "ShowProtOnlyInFight", true );
+      ShowProtAllDamageTypes = zoptions->ReadBool( PLUGIN_NAME, "ShowProtAllDamageTypes", false );
     }
   }
 
@@ -46,6 +46,8 @@ namespace GOTHIC_ENGINE {
     ManaStatusBar* manaBar;
     SwimStatusBar* swimBar;
     int multiplierIndex = 0;
+    float lastAppliedMotion = 1.0f;
+    bool speedSuppressed = false;
     int infoIcons = 0;
     std::chrono::high_resolution_clock::time_point lastSaveTime;
 

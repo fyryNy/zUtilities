@@ -4,14 +4,14 @@
 namespace GOTHIC_ENGINE {
   HOOK Hook_oCLogTopic_AddEntry PATCH( &oCLogTopic::AddEntry, &oCLogTopic::AddEntry_Union );
   void oCLogTopic::AddEntry_Union( zSTRING const& entry ) {
-    THISCALL( Hook_oCLogTopic_AddEntry )(entry);
+    THISCALL( Hook_oCLogTopic_AddEntry )( entry );
 
     logBook.AddTopic( this );
   }
 
   HOOK Hook_zCMenuItemList_ShowContent PATCH( &zCMenuItemList::ShowContent, &zCMenuItemList::ShowContent_Union );
   void zCMenuItemList::ShowContent_Union() {
-    THISCALL( Hook_zCMenuItemList_ShowContent )();
+    THISCALL( Hook_zCMenuItemList_ShowContent )( );
 
     if ( !Options::LogBookColoring || !logBook.CanColorList( this ) )
       return;
@@ -24,7 +24,7 @@ namespace GOTHIC_ENGINE {
 
   HOOK Hook_zCMenuItemList_DrawFront PATCH( &zCMenuItemList::DrawFront, &zCMenuItemList::DrawFront_Union );
   void zCMenuItemList::DrawFront_Union() {
-    THISCALL( Hook_zCMenuItemList_DrawFront )();
+    THISCALL( Hook_zCMenuItemList_DrawFront )( );
 
     if ( !Options::LogBookColoring || !logBook.CanColorList( this ) )
       return;
