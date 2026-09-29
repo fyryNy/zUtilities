@@ -9,4 +9,6 @@ namespace GOTHIC_ENGINE {
       RemoveBodies = zoptions->ReadInt( PLUGIN_NAME, "RemoveEmptyBodies", 0 );
     }
   }
+
+  void ClearFadingBodies();
 }

@@ -60,6 +60,7 @@ namespace GOTHIC_ENGINE {
       delete popups[0];
     noGrass.RestoreVisibility();
     lastActiveMunition = nullptr;
+    ClearFadingBodies();
 #if ENGINE >= Engine_G2
     vfxs.clear();
 #endif
