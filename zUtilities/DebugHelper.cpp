@@ -354,7 +354,7 @@ namespace GOTHIC_ENGINE {
       margin = textHeight;
 
       leftView = new zCView( margin, 0, 8192 - margin, 8192 );
-      rightView = new zCView( margin + 8192 * 0.6f, 0, 8192 - margin, 8192 );
+      rightView = new zCView( static_cast<int>( margin + 8192 * 0.6f ), 0, 8192 - margin, 8192 );
       mainView->InsertItem( leftView );
       mainView->InsertItem( rightView );
     }
@@ -368,7 +368,8 @@ namespace GOTHIC_ENGINE {
     ShowVobsVisualNames();
 
     if ( TryPrintInfo() ) {
-      mainView->SetSize( textLinesRight == 0 ? xsize / 1.7 : xsize, ysize );
+      const int viewWidth = textLinesRight == 0 ? static_cast<int>( xsize / 1.7 ) : xsize;
+      mainView->SetSize( viewWidth, ysize );
       return;
     }
 

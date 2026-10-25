@@ -5,11 +5,21 @@ namespace GOTHIC_ENGINE {
   class PlayerHelper {
   public:
     bool IsBusy() {
-      return IsInInfo() || OnPause() || player->inventory2.IsOpen();
+      return IsInInfo() || IsInCutscene() || OnPause() || player->inventory2.IsOpen();
     }
 
     bool IsInInfo() {
       return !oCInformationManager::GetInformationManager().HasFinished();
+    }
+
+    bool IsInCutscene() {
+      //TCoM
+      if ( CheckScriptFlag( "ISINCAMERA" ) || CheckScriptFlag( "ISINFINALBOARDS" ) )
+      {
+        return true;
+      }
+
+      return ( ( ogame->GetWorld() && ogame->GetWorld()->csPlayer && ogame->GetWorld()->csPlayer->GetPlayingGlobalCutscene() ) || zCCSCamera::playing );
     }
 
     bool OnPause() {

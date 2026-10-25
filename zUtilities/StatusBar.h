@@ -21,8 +21,8 @@ namespace GOTHIC_ENGINE {
   class StatusBar {
   private:
 
-    zCView* predictView;
-    zCView* focusView;
+    zCView* predictView = nullptr;
+    zCView* focusView = nullptr;
 
     int GetValueFromItem( oCItem* item, int atr );
     int GetRestoreValue();
@@ -33,14 +33,14 @@ namespace GOTHIC_ENGINE {
 
 
   protected:
-    zCView* valueView;
-    oCViewStatusBar* bar;
+    zCView* valueView = nullptr;
+    oCViewStatusBar* bar = nullptr;
     int restoreAttribute = -1;
     zCArray<zSTRING> symbols;
     zSTRING name;
     Array<string> userPos;
-    void PrintValue( oCNpc* npc );
-    virtual void PrintValueOutside( zSTRING str, oCNpc* npc );
+    void PrintValue();
+    virtual void PrintValueOutside( zSTRING& str );
     bool IsBarActive();
     StatusBar( oCViewStatusBar* bar );
     virtual zSTRING GetBarValue();

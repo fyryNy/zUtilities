@@ -4,3 +4,4 @@
 // Add your methods here
 
 int CheckRemoveNpc_Union(oCNpc*);
+void DeleteNpc_Union( oCNpc* npc );

@@ -106,7 +106,8 @@ namespace GOTHIC_ENGINE {
     if ( !weapon->HasFlag( ITM_CAT_FF ) || weapon->munition <= 0 )
       return nullptr;
 
-    return ( weapon->HasFlag( ITM_FLAG_CROSSBOW ) ) ? this->GetLeftHand()->CastTo<oCItem>() : this->GetRightHand()->CastTo<oCItem>();
+    auto hand = weapon->HasFlag( ITM_FLAG_CROSSBOW ) ? this->GetLeftHand() : this->GetRightHand();
+    return hand ? hand->CastTo<oCItem>() : nullptr;
   }
 
   bool oCNpc::IsInventoryEmpty( bool ignoreArmor, bool ignoreActive ) {
@@ -142,28 +143,44 @@ namespace GOTHIC_ENGINE {
   return true;
   }
 
-  bool oCNpc::IsFullyDead() {
-    if ( this->attribute[NPC_ATR_HITPOINTS] > 0 ) {
-      return false;
-    }
-
-    if ( !this->human_ai || !this->human_ai->IsDead() ) {
-      return false;
-    }
-
-    /*if (!this->IsAIState(NPC_AISTATE_DEAD) && !this->IsAIState(NPC_AISTATE_FADEAWAY)) {
-      return false;
-    }*/
-
-    if ( this->GetBodyState() != BS_DEAD ) {
-      return false;
-    }
-
-    auto model = this->GetModel();
-    if ( !model ) {
-      return false;
-    }
-
-    return model->IsStateActive( model->GetAniFromAniID( this->human_ai->s_dead1 ) ) || model->IsStateActive( model->GetAniFromAniID( this->human_ai->s_dead2 ) ) || model->IsStateActive( model->GetAniFromAniID( this->human_ai->s_drowned ) );
+bool oCNpc::IsFullyDead() {
+  if ( this->attribute[NPC_ATR_HITPOINTS] > 0 ) {
+    return false;
   }
+
+  if ( !this->human_ai ) {
+    return false;
+  }
+
+  if ( this->GetBodyState() != BS_DEAD ) {
+    return false;
+  }
+
+  // GetModel can recreate a shrunk NPC; classification must only inspect the current visual.
+  auto model = this->visual ? this->visual->CastTo<zCModel>() : nullptr;
+  if ( !model ) {
+    return false;
+  }
+
+  auto dead1 = model->GetAniFromAniID( this->human_ai->s_dead1 );
+  auto dead2 = model->GetAniFromAniID( this->human_ai->s_dead2 );
+  auto drowned = model->GetAniFromAniID( this->human_ai->s_drowned );
+  return ( dead1 && model->IsStateActive( dead1 ) )
+    || ( dead2 && model->IsStateActive( dead2 ) )
+    || ( drowned && model->IsStateActive( drowned ) );
+}
+
+bool CheckScriptFlag( const zSTRING& varName )
+{
+  auto sym = parser->GetSymbol( varName );
+  if ( !sym || sym->type != zPAR_TYPE_INT )
+  {
+    return false;
+  }
+
+  int val = 0;
+  sym->GetValue( val, 0 );
+
+  return val != 0;
+}
 }

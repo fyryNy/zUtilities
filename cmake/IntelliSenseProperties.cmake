@@ -1,0 +1,45 @@
+# Keep cpptools' native forcedInclude support while sharing the build's paths.
+# JSON string encoding is explicit for compatibility with CMake 3.25.
+function(zutilities_json_string output value)
+    string(REPLACE "\\" "\\\\" _value "${value}")
+    string(REPLACE "\"" "\\\"" _value "${_value}")
+    foreach(_code RANGE 1 31)
+        string(ASCII ${_code} _character)
+        math(EXPR _high "${_code} / 16")
+        math(EXPR _low "${_code} % 16")
+        string(SUBSTRING "0123456789abcdef" ${_high} 1 _high)
+        string(SUBSTRING "0123456789abcdef" ${_low} 1 _low)
+        string(REPLACE "${_character}" "\\u00${_high}${_low}" _value "${_value}")
+    endforeach()
+    set(${output} "\"${_value}\"" PARENT_SCOPE)
+endfunction()
+
+function(zutilities_generate_cpptools_config output source_dir)
+    cmake_parse_arguments(PARSE_ARGV 2 _config "" "COMPILER" "INCLUDE_DIRECTORIES")
+    set(ZUTILITIES_CPPTOOLS_INCLUDE_PATHS "[]")
+    set(_index 0)
+    foreach(_directory IN LISTS _config_INCLUDE_DIRECTORIES)
+        get_filename_component(_directory "${_directory}" ABSOLUTE BASE_DIR "${source_dir}")
+        zutilities_json_string(_directory_json "${_directory}")
+        string(JSON ZUTILITIES_CPPTOOLS_INCLUDE_PATHS SET
+            "${ZUTILITIES_CPPTOOLS_INCLUDE_PATHS}" ${_index} "${_directory_json}")
+        math(EXPR _index "${_index} + 1")
+    endforeach()
+    zutilities_json_string(ZUTILITIES_CPPTOOLS_COMPILER "${_config_COMPILER}")
+    configure_file("${CMAKE_CURRENT_FUNCTION_LIST_DIR}/IntelliSenseProperties.json.in"
+        "${output}" @ONLY)
+endfunction()
+
+function(zutilities_select_cpptools_config output link)
+    if(IS_SYMLINK "${link}")
+        file(REMOVE "${link}")
+    elseif(EXISTS "${link}")
+        message(FATAL_ERROR
+            "${link} exists and is not a symlink. Move your custom configuration "
+            "elsewhere before configuring so CMake can select the active editor paths.")
+    endif()
+    file(CREATE_LINK "${output}" "${link}" SYMBOLIC RESULT _result)
+    if(NOT _result STREQUAL "0")
+        message(FATAL_ERROR "Could not select the active cpptools configuration: ${_result}")
+    endif()
+endfunction()

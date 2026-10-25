@@ -41,9 +41,9 @@ namespace GOTHIC_ENGINE {
         }
 
         // Item scale
-        float scale = 2.5;
-        itemView->psizex *= scale;
-        itemView->psizey *= scale;
+        const float scale = 2.5f;
+        itemView->psizex = static_cast<int>( itemView->psizex * scale );
+        itemView->psizey = static_cast<int>( itemView->psizey * scale );
 
         // Position
         itemView->pposy = ( zrenderer->vid_ydim - itemView->psizey ) / 2;

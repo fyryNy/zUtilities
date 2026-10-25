@@ -23,7 +23,9 @@ namespace GOTHIC_ENGINE {
 
     float z = ZenDef( 0.9f, 0.9f, 1.1f, 1.1f );
     zCTexture* texture = texture->Load( texName, true );
-    zrenderer->DrawTile( texture, zVEC2( px1, py1 ), zVEC2( px2, py2 ), z, zVEC2( 0, 0 ), zVEC2( 1.0f, 1.0f ), color );
+    const zVEC2 topLeft( static_cast<float>( px1 ), static_cast<float>( py1 ) );
+    const zVEC2 bottomRight( static_cast<float>( px2 ), static_cast<float>( py2 ) );
+    zrenderer->DrawTile( texture, topLeft, bottomRight, z, zVEC2( 0.0f, 0.0f ), zVEC2( 1.0f, 1.0f ), color );
     texture->Release();
   }
 
@@ -56,7 +58,7 @@ namespace GOTHIC_ENGINE {
     zrenderer->SetViewport( ScreenX, ScreenY, ScreenSX, ScreenSY );
   }
 
-  IconInfo::IconInfo( int x, int y, int size, zCOLOR color, zSTRING texName, zSTRING text = "" )
+  IconInfo::IconInfo( int x, int y, int size, zCOLOR color, zSTRING texName, zSTRING text )
     : vx( x ), vy( y ), vsize( size ), color( color ), texName( texName ), text( text ) {
     Draw();
   };

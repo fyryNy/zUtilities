@@ -72,11 +72,12 @@ namespace GOTHIC_ENGINE {
   }
 
   void StatusBar::DrawPrediction( int value ) {
-    if ( bar->maxHigh <= 0 )
+    const int maximum = static_cast<int>( bar->maxHigh );
+    if ( maximum <= 0 )
       return;
 
-    int current = (int)bar->currentValue * 100 / (int)bar->maxHigh;
-    int bonus = min( value * 100 / (int)bar->maxHigh, 100 );
+    int current = (int)bar->currentValue * 100 / maximum;
+    int bonus = min( value * 100 / maximum, 100 );
 
     if ( bonus + current > 100 )
       bonus = 100 - current;
@@ -96,10 +97,10 @@ namespace GOTHIC_ENGINE {
   }
 
   void StatusBar::PredictRestore() {
+    del( predictView );
+
     if ( !Options::RecoveryVisualization )
       return;
-
-    del( predictView );
 
     if ( !IsBarActive() )
       return;
@@ -115,36 +116,34 @@ namespace GOTHIC_ENGINE {
     return Z( int )bar->currentValue + "/" + Z( int )bar->maxHigh;
   }
 
-  void StatusBar::PrintValue( oCNpc* npc ) {
+  void StatusBar::PrintValue() {
+    del( valueView );
+
     if ( !Options::StatusBarValueMode )
       return;
-
-    del( valueView );
 
     if ( !IsBarActive() )
       return;
 
     valueView = new zCView( 0, 0, 8192, 8192 );
 
-    auto str = GetBarValue();
+    zSTRING str = GetBarValue();
 
-
-    if ( name && name.Length() ) {
+    if ( name && name.Length() )
       str = name + ": " + str;
-    }
 
-    zCView* ownerView = ( Options::StatusBarValueMode == Inside ) ? bar->range_bar : screen;
+    const bool inside = ( Options::StatusBarValueMode == Inside );
+    zCView* ownerView = inside ? bar->range_bar : screen;
+
     ownerView->InsertItem( valueView );
 
-    if ( Options::StatusBarValueMode != Inside ) {
-      PrintValueOutside( str, npc );
-      return;
-    }
-
-    valueView->PrintCXY( str );
+    if ( inside )
+      valueView->PrintCXY( str );
+    else
+      PrintValueOutside( str );
   }
 
-  void StatusBar::PrintValueOutside( zSTRING str, oCNpc* npc ) {
+  void StatusBar::PrintValueOutside( zSTRING& str ) {
     int offsetY = bar->vsizey / 2 + valueView->FontY();
     int x = bar->vposx + bar->vsizex / 2 - valueView->FontSize( str ) / 2;
     int y = bar->vposy;
@@ -210,13 +209,13 @@ namespace GOTHIC_ENGINE {
 
     ChangeBarPos();
     PredictRestore();
-    PrintValue( player );
+    PrintValue();
   }
 
   StatusBar::StatusBar( oCViewStatusBar* bar ) {
     this->bar = bar;
 
     if ( Options::StatusBarValueMode == Inside && !playerHelper.GetSysScale() )
-      this->bar->vsizey *= 1.15;
+      this->bar->vsizey = static_cast<int>( this->bar->vsizey * 1.15 );
   }
 }

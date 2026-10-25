@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Engine SDK">
@@ -255,6 +255,9 @@
     </Filter>
     <Filter Include="Plugin\Workspace\Features\NoGrass">
       <UniqueIdentifier>{c8b60c7e-0a02-44e3-81fc-b854c8865ed3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Plugin\Workspace\Features\PlayerStatus\FocusStatusBar">
+      <UniqueIdentifier>{9d696232-6486-45d7-a379-af59a6476b5c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -533,7 +536,7 @@
     <ClInclude Include="ZenGin\Gothic_II_Addon\API\zAiCamera_Movement.h">
       <Filter>Engine SDK\4. Gothic II NoTR\Headers\zEngine</Filter>
     </ClInclude>
-    <ClInclude Include="ZenGin\Gothic_II_Addon\API\zAIPlayer.h">
+    <ClInclude Include="ZenGin\Gothic_II_Addon\API\zAiPlayer.h">
       <Filter>Engine SDK\4. Gothic II NoTR\Headers\zEngine</Filter>
     </ClInclude>
     <ClInclude Include="ZenGin\Gothic_II_Addon\API\zAlgebra.h">
@@ -2922,19 +2925,23 @@
     <ClInclude Include="Extensions.h">
       <Filter>Plugin\Workspace\Misc</Filter>
     </ClInclude>
-    <ClInclude Include="FocusStatusBar.h" />
-    <ClInclude Include="FocusStatusBar.cpp" />
     <ClInclude Include="HealthStatusBar.cpp" />
     <ClInclude Include="HealthStatusBar.h" />
     <ClInclude Include="ManaStatusBar.h" />
     <ClInclude Include="ManaStatusBar.cpp" />
     <ClInclude Include="SwimStatusBar.cpp" />
     <ClInclude Include="SwimStatusBar.h" />
-    <ClInclude Include="NpcHelper.cpp">
+    <ClInclude Include="DamageMaskHelper.h">
       <Filter>Plugin\Workspace\Misc</Filter>
     </ClInclude>
-    <ClInclude Include="NpcHelper.h">
+    <ClInclude Include="DamageMaskHelper.cpp">
       <Filter>Plugin\Workspace\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="FocusStatusBar.h">
+      <Filter>Plugin\Workspace\Features\PlayerStatus\FocusStatusBar</Filter>
+    </ClInclude>
+    <ClInclude Include="FocusStatusBar.cpp">
+      <Filter>Plugin\Workspace\Features\PlayerStatus\FocusStatusBar</Filter>
     </ClInclude>
     <ClInclude Include="RemoveEmptyBodies.h">
       <Filter>Plugin\Workspace\Features\RemoveEmptyBodies</Filter>

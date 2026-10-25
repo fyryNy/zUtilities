@@ -40,7 +40,7 @@ namespace GOTHIC_ENGINE {
     Array<string> splitted = ( A zoptions->ReadString( sectionName, entryName, text ) ).Split( "|" );
     Array<int> channels;
 
-    for ( int i = 0; i < splitted.GetNum(); i++ ) {
+    for ( uint i = 0; i < splitted.GetNum(); i++ ) {
       splitted[i] = splitted[i].Shrink();
       if ( !splitted[i].IsNumber() ) return nullptr;
 
@@ -50,7 +50,7 @@ namespace GOTHIC_ENGINE {
       channels.Insert( value );
     }
 
-    int size = channels.GetNum();
+    const uint size = channels.GetNum();
     if ( size != 3 && size != 4 )
       return nullptr;
 

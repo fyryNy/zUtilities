@@ -12,11 +12,14 @@ namespace GOTHIC_ENGINE {
   class NoGrass {
   private:
     std::vector<string> visualsNames;
-    std::unordered_set<zCVob*> hiddenVobs;
+    // Each tracked vob owns one reference until its visibility is restored.
+    std::unordered_map<zCVob*, bool> hiddenVobs;
     bool IsValidVob( zCVob* vob );
 
   public:
     bool IsHidden( zCVob* vob ) const;
+    bool GetOriginalVisibility( zCVob* vob ) const;
+    void ForgetVob( zCVob* vob );
     void ShowVisualsNames();
     void RestoreVisibility();
     void UpdateVisualsList();
