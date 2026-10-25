@@ -32,10 +32,9 @@ namespace GOTHIC_ENGINE {
     zVEC2 vpOffset;
     float creationTimeInSecs;
     float lastAnchorUpdate;
-    float currentLifetimeLimit;
+    float currentLifetimeLimit = prolongationInSecs;
 
-    oCNpc::oSDamageDescriptor* desc;
-    oCNpc* target;
+    oCNpc* target = nullptr;
     bool isCrit;
     int mode;
     int dmgAmount;
@@ -46,7 +45,7 @@ namespace GOTHIC_ENGINE {
     float scale;
 
     void SetMoveMode();
-    void SetColor();
+    void SetColor( oCNpc::oSDamageDescriptor& desc );
     void SetIcon();
     void SetScale();
     float GetRandomDist( float start, int random, bool invertable );
@@ -64,7 +63,7 @@ namespace GOTHIC_ENGINE {
 
     void Update();
     static bool WorldToView( const zVEC3& worldPos, zCView* view, zVEC2& pos );
-    DamagePopup( oCNpc* targetNpc, oCNpc::oSDamageDescriptor& desc, int dmgAmount, bool isCrit );
+    DamagePopup( oCNpc* targetNpc, oCNpc::oSDamageDescriptor& desc, int Hp, bool isCrit );
     ~DamagePopup();
   };
 

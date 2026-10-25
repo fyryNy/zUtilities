@@ -39,10 +39,10 @@ namespace GOTHIC_ENGINE {
 #endif
   }
 
-  HOOK Ivk_OnDamage_Hit_Union PATCH( &oCNpc::OnDamage_Hit, &oCNpc::OnDamage_Hit_Union );
-  void oCNpc::OnDamage_Hit_Union( oSDamageDescriptor& desc ) {
+  HOOK Ivk_OnDamage_Union PATCH( &oCNpc::OnDamage, &oCNpc::OnDamage_Union );
+  void oCNpc::OnDamage_Union( oSDamageDescriptor& desc ) {
     if ( !Options::DamagePopupMode ) {
-      THISCALL( Ivk_OnDamage_Hit_Union )( desc );
+      THISCALL( Ivk_OnDamage_Union )( desc );
       return;
     }
 
@@ -55,7 +55,7 @@ namespace GOTHIC_ENGINE {
     int initialHp = this->attribute[NPC_ATR_HITPOINTS];
 
     oCNpc::oSDamageDescriptor descOld = desc;
-    THISCALL( Ivk_OnDamage_Hit_Union )( desc );
+    THISCALL( Ivk_OnDamage_Union )( desc );
 
     int hpDiff = initialHp - this->attribute[NPC_ATR_HITPOINTS];
 
@@ -95,7 +95,7 @@ namespace GOTHIC_ENGINE {
     }
   }
 
-  void DamagePopup::SetColor() {
+  void DamagePopup::SetColor( oCNpc::oSDamageDescriptor& desc ) {
     if ( Options::DamagePopupColorDmgTypes )
       switch ( dmgIndex )
       {
@@ -122,22 +122,22 @@ namespace GOTHIC_ENGINE {
         break;
       }
 
-    if ( desc->pNpcAttacker != nullptr ) {
-      if ( desc->pNpcAttacker == player ) {
+    if ( desc.pNpcAttacker != nullptr ) {
+      if ( desc.pNpcAttacker == player ) {
         if ( isCrit )
           color = zCOLOR( 231, 76, 60 );
       }
-      else if ( desc->pNpcAttacker->GetAivar( "AIV_PARTYMEMBER" ) )
+      else if ( desc.pNpcAttacker->GetAivar( "AIV_PARTYMEMBER" ) )
         color = zCOLOR( 51, 235, 255 );
     }
 
     //if ( target == player )
     //  color = zCOLOR( 255, 0, 0 );
 
-    if ( dmgAmount < 0 )
+    if ( dmgAmount == 0 )
       color = zCOLOR( 148, 144, 136 );
-    else if ( dmgAmount == 0 )
-      color = zCOLOR( 148, 144, 136 );
+    else if ( dmgAmount < 0 )
+      color = zCOLOR( 255, 105, 180 );
   }
 
   void DamagePopup::SetIcon() {
@@ -168,6 +168,10 @@ namespace GOTHIC_ENGINE {
       icon = "UNKNOWN"; // https://game-icons.net/1x1/lorc/scar-wound.html
       break;
     }
+
+    if ( dmgAmount < 0 ) {
+      icon = "HEAL";
+    }
   }
 
   void DamagePopup::SetScale() {
@@ -177,7 +181,8 @@ namespace GOTHIC_ENGINE {
     float baseScale = scale;
 
     if ( dmgAmount > 0 ) {
-      scale += scale * (float)dmgAmount / (float)target->attribute[NPC_ATR_HITPOINTSMAX] / 1.75f;
+      if ( target->attribute[NPC_ATR_HITPOINTSMAX] > 0 )
+        scale += scale * (float)dmgAmount / (float)target->attribute[NPC_ATR_HITPOINTSMAX] / 1.75f;
 
       if ( isCrit )
         scale *= 1.4f;
@@ -201,8 +206,8 @@ namespace GOTHIC_ENGINE {
 
     int x, y;
     cam->Project( &viewPos, x, y );
-    pos[VX] = view->anx( x + 0.5f );
-    pos[VY] = view->any( y + 0.5f );
+    pos[VX] = static_cast<float>( view->anx( static_cast<int>( x + 0.5f ) ) );
+    pos[VY] = static_cast<float>( view->any( static_cast<int>( y + 0.5f ) ) );
 
     return viewPos[VZ] > cam->nearClipZ;
   }
@@ -227,16 +232,16 @@ namespace GOTHIC_ENGINE {
     viewPos[VX] = CoerceInRange( viewPos[VX] - width / 2, width, 0, 8191 );
     viewPos[VY] = CoerceInRange( viewPos[VY] - height / 2, height, 0, 8191 );
 
-    vpPos.left = view->nax( viewPos[VX] ) + vpOffset[VX];
-    vpPos.top = view->nay( viewPos[VY] ) + vpOffset[VY];
-    width = view->nax( width );
-    height = view->nay( height );
-    vpPos.right = vpPos.left + width;
-    vpPos.bottom = vpPos.top + height;
+    vpPos.left = static_cast<long>( view->nax( static_cast<int>( viewPos[VX] ) ) + vpOffset[VX] );
+    vpPos.top = static_cast<long>( view->nay( static_cast<int>( viewPos[VY] ) ) + vpOffset[VY] );
+    const int pixelWidth = view->nax( static_cast<int>( width ) );
+    const int pixelHeight = view->nay( static_cast<int>( height ) );
+    vpPos.right = vpPos.left + pixelWidth;
+    vpPos.bottom = vpPos.top + pixelHeight;
 
-    for ( int i = 0; i < popups.GetNum() && popups[i] != this; i++ )
+    for ( uint i = 0; i < popups.GetNum() && popups[i] != this; i++ )
       if ( Intersects( vpPos, popups[i]->vpPos ) ) {
-        int deltaY = ( popups[i]->vpPos.bottom - vpPos.top ) / 3.0f;
+        int deltaY = static_cast<int>( ( popups[i]->vpPos.bottom - vpPos.top ) / 3.0f );
         vpPos.top += deltaY;
         vpPos.bottom += deltaY;
         vpOffset[VY] += deltaY;
@@ -289,19 +294,20 @@ namespace GOTHIC_ENGINE {
     if ( !WorldToView( pos, view, viewPos ) )
       return;
 
-    color.alpha = alpha;
-    zCOLOR textColor = ( Options::DamagePopupColorOnlyIcon ) ? zCOLOR( 240, 220, 194, alpha ) : color;
+    const unsigned char opacity = static_cast<unsigned char>( max( 0.0f, min( alpha, 255.0f ) ) );
+    color.alpha = opacity;
+    zCOLOR textColor = ( Options::DamagePopupColorOnlyIcon ) ? zCOLOR( 240, 220, 194, opacity ) : color;
     zCOLOR iconColor = color;
 
-    zSTRING text = dmgAmount;
+    zSTRING text = zSTRING{ std::abs( dmgAmount ) };
     CalcViewport( text, view, viewPos, scaling );
 
     zCFont* font = view->GetFont();
     float space = font->GetLetterDistance() * scaling[VX];
 
-    float x = vpPos.left;
-    float y = vpPos.top;
-    float height = vpPos.bottom - vpPos.top;
+    float x = static_cast<float>( vpPos.left );
+    float y = static_cast<float>( vpPos.top );
+    float height = static_cast<float>( vpPos.bottom - vpPos.top );
     float z = ZenDef( 0.9f, 0.9f, 1.1f, 1.1f );
 
     for ( size_t i = 0; text.ToChar()[i] != '\n' && text.ToChar()[i] != '\0'; i++ ) {
@@ -334,17 +340,18 @@ namespace GOTHIC_ENGINE {
 
     mode = Options::DamagePopupMode;
     this->target = targetNpc;
+    // Corpse removal can release the world's last reference before the next frame.
+    this->target->AddRef();
     this->dmgAmount = dmgAmount;
-    this->desc = &desc;
     this->isCrit = isCrit;
 
     int aryDamageEffective[oEDamageIndex::oEDamageIndex_MAX];
     for ( int i = 0; i < oEDamageIndex::oEDamageIndex_MAX; i++ )
-      aryDamageEffective[i] = (int)this->desc->aryDamageEffective[i];
+      aryDamageEffective[i] = (int)desc.aryDamageEffective[i];
 
-    dmgIndex = GetTopDmgIndex( aryDamageEffective, this->desc->enuModeDamage );
+    dmgIndex = GetTopDmgIndex( aryDamageEffective, desc.enuModeDamage );
     SetMoveMode();
-    SetColor();
+    SetColor( desc );
     SetIcon();
     SetScale();
 
@@ -359,5 +366,7 @@ namespace GOTHIC_ENGINE {
 
   DamagePopup::~DamagePopup() {
     popups.Remove( this );
+    if ( this->target )
+      this->target->Release();
   }
 }

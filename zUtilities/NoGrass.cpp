@@ -6,18 +6,20 @@ namespace GOTHIC_ENGINE {
   void zCVob::Archive_Union( zCArchiver& ar ) {
     // Persist the vob's real visibility without showing every hidden vob before a save.
     const bool hiddenByNoGrass = ar.InSaveGame() && noGrass.IsHidden( this );
+    const bool previousShowVisual = showVisual != 0;
     if ( hiddenByNoGrass )
-      showVisual = 1;
+      showVisual = noGrass.GetOriginalVisibility( this );
 
     THISCALL( Hook_zCVob_Archive )( ar );
 
     if ( hiddenByNoGrass )
-      showVisual = 0;
+      showVisual = previousShowVisual;
   }
 
   void NoGrass::Update() {
     auto prevNoGrass = Options::NoGrass;
     auto prevNoGrassRemoveVobsWithDynamicCollisions = Options::NoGrassRemoveVobsWithDynamicCollisions;
+    auto prevVisualNames = visualsNames;
     Options::NoGrass = zoptions->ReadBool( PLUGIN_NAME, "NoGrass", false );
     Options::NoGrassDebugShowHidden = zoptions->ReadBool( PLUGIN_NAME, "NoGrassDebugShowHidden", true );
     Options::NoGrassRemoveVobsWithDynamicCollisions = zoptions->ReadBool( PLUGIN_NAME, "NoGrassRemoveVobsWithDynamicCollisions", false );
@@ -40,7 +42,9 @@ namespace GOTHIC_ENGINE {
     }
 
     UpdateVisualsList();
-    if ( prevNoGrass != Options::NoGrass || prevNoGrassRemoveVobsWithDynamicCollisions != Options::NoGrassRemoveVobsWithDynamicCollisions )
+    if ( prevNoGrass != Options::NoGrass
+      || prevNoGrassRemoveVobsWithDynamicCollisions != Options::NoGrassRemoveVobsWithDynamicCollisions
+      || prevVisualNames != visualsNames )
       UpdateVisuals();
   }
 
@@ -70,15 +74,35 @@ namespace GOTHIC_ENGINE {
   }
 
   bool NoGrass::IsHidden( zCVob* vob ) const {
-    return !hiddenVobs.empty() && hiddenVobs.find( vob ) != hiddenVobs.end();
+    if ( !vob )
+      return false;
+
+    if ( vob->GetVobType() == zVOB_TYPE_ITEM || vob->GetVobType() == zVOB_TYPE_NSC || vob->GetVobType() == zVOB_TYPE_MOB )
+      return false;
+
+    return hiddenVobs.find( vob ) != hiddenVobs.end();
+  }
+
+  bool NoGrass::GetOriginalVisibility( zCVob* vob ) const {
+    auto it = hiddenVobs.find( vob );
+    return it != hiddenVobs.end() ? it->second : vob && vob->showVisual != 0;
+  }
+
+  void NoGrass::ForgetVob( zCVob* vob ) {
+    auto it = hiddenVobs.find( vob );
+    if ( it == hiddenVobs.end() )
+      return;
+
+    const bool originalShowVisual = it->second;
+    // Erase before Release: destruction can reenter the world-removal hook.
+    hiddenVobs.erase( it );
+    vob->showVisual = originalShowVisual;
+    vob->Release();
   }
 
   void NoGrass::RestoreVisibility() {
-    for ( auto vob : hiddenVobs ) {
-      if ( vob )
-        vob->showVisual = 1;
-    }
-    hiddenVobs.clear();
+    while ( !hiddenVobs.empty() )
+      ForgetVob( hiddenVobs.begin()->first );
   }
 
   void NoGrass::UpdateVisuals() {
@@ -131,8 +155,10 @@ namespace GOTHIC_ENGINE {
       }
 
       if ( isMatch ) {
+        auto inserted = hiddenVobs.insert( { vob, vob->showVisual != 0 } );
+        if ( inserted.second )
+          vob->AddRef();
         vob->showVisual = 0;
-        hiddenVobs.insert( vob );
       }
     }
   }
@@ -173,7 +199,7 @@ namespace GOTHIC_ENGINE {
         continue;
 
       screen->SetFontColor( textColor );
-      screen->Print( viewPos[VX], viewPos[VY], vobVisualName );
+      screen->Print( static_cast<int>( viewPos[VX] ), static_cast<int>( viewPos[VY] ), vobVisualName );
     }
 
     screen->SetFontColor( screenColor );

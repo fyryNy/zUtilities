@@ -22,7 +22,7 @@ This is a plugin with a set of many quality-of-life and utility features made fo
 - Changes name color of focused npcs, containers, doors and items.
 
   - Npcs: `Red` - hostile / wants to kill you, `Orange` - angry / pissed off, `Cyan` - partymember, `Green` - friendly, `Slightly green` - friendly guild, `White` - neutral / dead, `Grey` - dead and looted.
-  - Lockables: `Red` - locked on key, `Orange` - locked, `Light red` - can be opened with a key or lockpick, `Green` - open with items, `Grey` - permanently closed or opened and empty.
+  - Lockables: `Red` - requires a key you do not have, `Magenta` - requires a key you have, `Orange` - requires lockpicking, `Light red` - can be opened with a key or lockpick and you do not have the key, `Pink` - can be opened with a key or lockpick and you have the key, `Green` - open with items, `Very Dark Grey` - permanently closed or opened and empty.
   - Items: `White` - default / item can be taken, `Slightly orange` - someone will catch the hero stealing.
   - Intractable book stands: `Green` - unread, `White` - default / read.
   - Each group can be disabled separately in `gothic.ini` with `ColorNpcs`, `ColorLockables`, `ColorItems` and `ColorInter` options.
@@ -67,13 +67,26 @@ This is a plugin with a set of many quality-of-life and utility features made fo
 
   - This feature is completely disabled by default and can be enabled with `UseTimeMultiplier` option.
   - Time multipliers can be changed with `TimeMultipliers` option like so: `0.65|1.0|2.7|3.5`.
+  - Invalid, nonfinite and nonpositive multipliers are ignored. If no valid values remain, normal speed (`1.0`) is used.
   - World speed will cycle in the order of set multipliers after pressing `Z`. Shortcut can also be changed with `KeyTimeMultiplier` option.
   - Currently used multiplier will be shown next to the time icon.
 
-- Displays protection icon and value next to the focused npc hp bar.
+- Displays protection icons and values next to the focused NPC's health bar.
 
-  - Setting `ShowTargetProtection` option to `0` disables this feature, `1` displays the protection that matches currently used weapon and `2` shows all protection stats.
-  - `ShowProtOnlyInFight` and `ShowProtAllDamageTypes` are extra options that can be used, to alter what is displayed.
+  - `ShowTargetProtectionInFight` applies when a weapon or spell is drawn. `ShowTargetProtectionNoFight` applies otherwise. Transformation into a monster uses fight mode.
+  - Both options accept these modes:
+    - `0` - _Disabled_: hide protection icons and values.
+    - `1` - _CurrentWeapon_: show protections for the drawn weapon or spell. Outside combat, include equipped melee and ranged weapons and spells, so several icons can appear.
+    - `2` - _All_: show all seven standard protection types, subject to the filters below.
+  - An immortal target shows one cracked shield. Immunity to an individual damage type is displayed as `IMM` and counts as a nonzero protection value.
+  - `TargetProtectionIconStyle`: `0` - _DamagePopup_ uses damage type icons and colors; `1` - _Shields_ uses colored shields.
+  - `TargetProtectionIconPosition`: `0` - _Top_ places a row above a floating health bar, or below the fixed health bar when `ShowEnemyBarAboveHim=0`. `1` - _Right_ places a column beside the bar. A single icon is placed beside the bar in either mode. The layout reserves room for the NPC name and reward icons, wraps wide rows, and switches a column to rows when it cannot fit.
+  - These filters apply only to _All_ mode:
+    - `HideTargetProtectionZeroValues` hides zero protection values, while keeping immunity visible.
+    - `HideTargetProtectionFallDamage`, `HideTargetProtectionFlyDamage`, and `HideTargetProtectionFireDamage` hide the respective types, including immunity. A type is hidden if any applicable filter hides it.
+  - Ranged protections first use the matching ammunition's damage types, then the ranged weapon's types if ammunition metadata is unavailable. If neither supplies a damage type, `DistanceWeaponDamageType` supplies a fallback bitmask: add `Barrier=1`, `Blunt=2`, `Edge=4`, `Fire=8`, `Fly=16`, `Magic=32`, `Point=64`, or `Fall=128`. For example, `72` means Fire + Point; `0` uses Point by default.
+  - Actual ranged hits update the damage type for the current weapon and ammunition and take precedence over item metadata. This learned value survives menu changes and resets when ranged equipment changes or a world is loaded; it does not change the configured fallback.
+  - On upgrade, the old `ShowTargetProtection`, `ShowProtOnlyInFight`, and `ShowProtAllDamageTypes` settings initialize missing mode and zero-filter options. Explicit new settings take precedence. Invalid mode, style, and position values reset to their defaults.
 
 - Displays coin icon next to the focused npc name if player can pickpocket him.
 
@@ -88,6 +101,11 @@ This is a plugin with a set of many quality-of-life and utility features made fo
 
   - New log entries will appear green and updated ones will be orange.
   - This feature can be disabled in `gothic.ini` with `LogBookColoring` option.
+
+- Moves logbook topics to the top of their list whenever a new entry is added.
+
+  - Enabled by default. Toggle `LogBookSortTopics` in the _Miscellaneous 2_ menu or `gothic.ini`.
+  - Turning it off stops future reordering and keeps the current topic order.
 
 - Allows to change color of selected text line in dialogues with `SelectedDialogueColor` option.
 
@@ -137,6 +155,8 @@ This is a plugin with a set of many quality-of-life and utility features made fo
   - Npcs carrying mission items are never removed.
   - Change `RemoveEmptyBodies` for different removal modes: `0` - _Disabled_, `1` - _Fade away_, `2` - _Immediately_.
   - This feature is disabled by default.
+  - Fading is cancelled and the original transparency, collision and sleeping state restored if the corpse gains inventory or mission items, or removal is disabled.
+  - Reviving an NPC cancels its fade while preserving the resurrection's collision, sleeping and visibility changes. Any remaining fade transparency is removed.
 
 - Hides grass and other configured world object visuals.
 
@@ -186,6 +206,9 @@ SelectedDialogueColor=
 LogBookColoring=1
 ; ... enables (1) or disables (0) coloring of new and unread topics in logbook
 
+LogBookSortTopics=1
+; ... enables (1) or disables (0) moving logbook topics to the top when a new entry is added
+
 ShowSystemTime=0
 ; ... on screen display of system time (24H format), (0) - 'Disabled', (1) - 'Hour:Minute format', (2) - 'Hour:Minute:Second format
 
@@ -214,14 +237,39 @@ SaveReminder=5
 ; ... Time in minutes after which the reminder to save the game appears on the screen
 ; ... set to -1 to disable
 
-ShowTargetProtection=1
-; ... enables for currently equipped weapon (1) or shows all protection stats (2) or disables (0) protection icon and value next to the focused npc hp bar
+ShowTargetProtectionNoFight=0
+;... specifies mode for showing target protection in no fight mode by
+;... (0) - 'Disabled', (1) - 'CurrentWeapon', (2) - 'All'
 
-ShowProtOnlyInFight=1
-; ... enables (1) or disables (0) showing protection stats only during combat
+ShowTargetProtectionInFight=1
+;... specifies mode for showing target protection in fight mode by
+;... (0) - 'Disabled', (1) - 'CurrentWeapon', (2) - 'All'
 
-ShowProtAllDamageTypes=0
-; ... enables (1) or disables (0) showing all protection stats, even if they are 0
+TargetProtectionIconStyle=0
+;... specifies style for protection icons
+;... (0) - 'DamagePopup', (1) - 'Shields'
+
+TargetProtectionIconPosition=0
+;... specifies position for protection icons
+;... (0) - 'Top', (1) - 'Right'
+
+DistanceWeaponDamageType=0
+; ... fallback damage type bitmask when ranged weapon and ammunition damage types are unavailable
+; ... add flags: Barrier=1, Blunt=2, Edge=4, Fire=8, Fly=16, Magic=32, Point=64, Fall=128
+; ... 0 defaults to Point; 72 means Fire + Point
+; ... actual hits can override the fallback for the current weapon and ammunition without changing this setting
+
+HideTargetProtectionZeroValues=0
+; ... hides protection icons with zero value; (0) - 'Disabled', (1) - 'Enabled'
+
+HideTargetProtectionFallDamage=0
+; ... hides protection icon for fall damage; (0) - 'Disabled', (1) - 'Enabled'
+
+HideTargetProtectionFlyDamage=0
+; ... hides protection icon for fly damage; (0) - 'Disabled', (1) - 'Enabled'
+
+HideTargetProtectionFireDamage=0
+; ... hides protection icon for fire damage; (0) - 'Disabled', (1) - 'Enabled'
 
 RecoveryVisualization=1
 ; ... enables (1) or disables (0) visualization of healing that hovered in the inventory item gives

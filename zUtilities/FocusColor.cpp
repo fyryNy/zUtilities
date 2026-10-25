@@ -44,7 +44,7 @@ namespace GOTHIC_ENGINE {
     static const int PERC_DIST_INDOOR_HEIGHT = ( sym1 ) ? sym1->single_intdata : 250;
 
     static const zCPar_Symbol* sym2 = parser->GetSymbol( "PERC_DIST_ACTIVE_MAX" );
-    static const int PERC_DIST_ACTIVE_MAX = ( sym2 ) ? sym2->single_intdata : 2000;
+    static const float PERC_DIST_ACTIVE_MAX = sym2 ? static_cast<float>( sym2->single_intdata ) : 2000.0f;
 
     oCPortalRoom* playerRoom = player->GetCurrentPortalRoom();
 
@@ -62,7 +62,8 @@ namespace GOTHIC_ENGINE {
       if ( !npc->HasPerception( NPC_PERC_ASSESSTHEFT ) )
         continue;
 
-      if ( !npc->IsInPerceptionRange( NPC_PERC_ASSESSTHEFT, (int)npc->GetDistanceToVob( *player ) ) )
+      const float perceptionDistance = std::trunc( npc->GetDistanceToVob( *player ) );
+      if ( !npc->IsInPerceptionRange( NPC_PERC_ASSESSTHEFT, perceptionDistance ) )
         continue;
 
 #if ENGINE >= Engine_G2
@@ -253,7 +254,7 @@ namespace GOTHIC_ENGINE {
       else if ( lockable->pickLockStr.Length() )
         return zCOLOR( 255, 175, 0 );
       else
-        return zCOLOR( 175, 175, 175 );
+        return zCOLOR( 75, 75, 75 );
     }
 
     if ( oCMobContainer* container = lockable->CastTo<oCMobContainer>() )
@@ -341,6 +342,9 @@ namespace GOTHIC_ENGINE {
   }
 
   bool FocusColor::TryPrintFocus( int x, int y, zSTRING name, zCVob* vob ) {
+    // Scripted icon conditions can print recursively or remove their NPC.
+    vobOnScreen = true;
+    vob->AddRef();
     zCOLOR col = GetFocusColor( vob );
     if ( col.GetDescription() == colUnknown.GetDescription() )
       col = screen->fontColor;
@@ -353,9 +357,32 @@ namespace GOTHIC_ENGINE {
       focusView->ClrPrintwin();
     }
 
-    if ( playerStatus.focusBar && playerStatus.focusBar->NeedAdjustPosition( x, y, vob->CastTo<oCNpc>() ) ) {
-      x = ogame->focusBar->vposx + ogame->focusBar->vsizex / 2 - focusView->FontSize( name ) / 2;
-      y = ogame->focusBar->vposy + ogame->focusBar->vsizey / 2 + focusView->FontY();
+    oCNpc* npc = vob->CastTo<oCNpc>();
+    bool showPickpocket = false;
+    bool showXpReward = false;
+    if ( npc && npc->attribute[NPC_ATR_HITPOINTS] > 0 ) {
+#if ENGINE >= Engine_G2
+      showPickpocket = Options::ShowPickpocketIcon && playerStatus.CanPickpocketNpc( npc );
+#endif
+      showXpReward = Options::ShowHumanNpcXpRewardIcon && playerStatus.IsHumanNpcEligibleForXpReward( npc );
+    }
+
+    if ( npc && !npc->GetHomeWorld() ) {
+      vob->Release();
+      return true;
+    }
+
+    FocusNameLayout nameLayout;
+    nameLayout.textWidth = focusView->FontSize( name );
+    nameLayout.fontY = focusView->FontY();
+    const int iconCount = static_cast<int>( showPickpocket ) + static_cast<int>( showXpReward );
+    const int iconSize = static_cast<int>( nameLayout.fontY * 0.55f );
+    nameLayout.iconsWidth = iconCount * ( iconSize + nameLayout.fontY / 10 );
+    nameLayout.iconsHeight = iconCount ? screen->any( screen->nax( iconSize ) ) + screen->any( 1 ) + 1 : 0;
+
+    if ( playerStatus.focusBar && npc && npc->attribute[NPC_ATR_HITPOINTS] > 0 ) {
+      playerStatus.focusBar->NeedAdjustPosition( x, y, npc, nameLayout );
+      playerStatus.focusBar->GetFocusNamePosition( x, y );
     }
 
     if ( ogame->hpBar )
@@ -363,35 +390,31 @@ namespace GOTHIC_ENGINE {
 
     focusView->SetFontColor( col );
     focusView->Print( x, y, name );
-    vobOnScreen = true;
+    TryAddIcons( x, y, name, showPickpocket, showXpReward );
 
-    if ( oCNpc* npc = vob->CastTo<oCNpc>() ) {
-      TryAddIcons( x, y, name, npc );
-    }
-
+    vob->Release();
     return true;
   }
 
-  void FocusColor::TryAddIcons( int x, int y, zSTRING name, oCNpc* npc ) {
-    if ( npc->attribute[NPC_ATR_HITPOINTS] <= 0 )
-      return;
-
+  void FocusColor::TryAddIcons( int x, int y, zSTRING name, bool showPickpocket, bool showXpReward ) {
     int iconNr = 1;
     int startX = x + focusView->FontSize( name );
-    int margin = focusView->FontY() * 0.1f;
-    int size = focusView->FontY() * 0.55f;
+    int margin = static_cast<int>( focusView->FontY() * 0.1f );
+    int size = static_cast<int>( focusView->FontY() * 0.55f );
 
 #if ENGINE >= Engine_G2
-    if ( Options::ShowPickpocketIcon && playerStatus.CanPickpocketNpc( npc ) ) {
+    if ( showPickpocket ) {
       zCOLOR color = zCOLOR( 241, 196, 15, ( ogame->hpBar ? ogame->hpBar->alpha : 255 ) );
       zSTRING texture = "LABEL_MONEY"; // https://game-icons.net/1x1/delapouite/two-coins.html
-      IconInfo icon = IconInfo( startX + margin * iconNr + size * ( iconNr++ - 1 ), y, size, color, texture );
+      IconInfo icon = IconInfo( startX + margin * iconNr + size * ( iconNr - 1 ), y, size, color, texture );
+      ++iconNr;
     }
 #endif
-    if ( Options::ShowHumanNpcXpRewardIcon && playerStatus.IsHumanNpcEligibleForXpReward( npc ) ) {
+    if ( showXpReward ) {
       zCOLOR color = zCOLOR( 108, 69, 186, ( ogame->hpBar ? ogame->hpBar->alpha : 255 ) );
       zSTRING texture = "ICON_PUNCH"; // https://game-icons.net/1x1/lorc/punch.html
-      IconInfo icon = IconInfo( startX + margin * iconNr + size * ( iconNr++ - 1 ), y, size, color, texture );
+      IconInfo icon = IconInfo( startX + margin * iconNr + size * ( iconNr - 1 ), y, size, color, texture );
+      ++iconNr;
     }
   }
 

@@ -1,7 +1,54 @@
 // Supported with union (c) 2020 Union team
 // Union SOURCE file
 
+#include <climits>
+
 namespace GOTHIC_ENGINE {
+  static bool NormalizeQuickSaveSlots( int slotCount, int& minSlot, int& maxSlot ) {
+    if ( slotCount <= 0 )
+      return false;
+
+    // Derive the bounds from the manager so mods with additional slots work.
+    minSlot = minSlot < 0 ? 0 : minSlot >= slotCount ? slotCount - 1 : minSlot;
+    maxSlot = maxSlot < 0 ? 0 : maxSlot >= slotCount ? slotCount - 1 : maxSlot;
+    if ( minSlot > maxSlot ) {
+      const int previousMin = minSlot;
+      minSlot = maxSlot;
+      maxSlot = previousMin;
+    }
+    return true;
+  }
+
+  static oCSavegameInfo* GetQuickSaveInfo( int slot ) {
+    auto manager = gameMan->savegameManager;
+    // Negative indices select the engine's temporary current-save info;
+    // positive indices are used by GetSavegame without a bounds check.
+    if ( slot < 0 || slot >= manager->infoList.GetNum() )
+      return nullptr;
+    return manager->GetSavegame( slot );
+  }
+
+  static void AdvanceQuickSaveSlot( int mode, int minSlot, int maxSlot, int& lastSlot, int& lastNumber ) {
+    // Restart the label sequence before signed overflow or an invalid counter.
+    const int nextNumber = lastNumber < 0 || lastNumber == INT_MAX ? 1 : lastNumber + 1;
+    if ( mode == QuickSave::QuickSaveMode::Alternative ) {
+      // The lowest set bit selects increasingly old backup slots. Wrap over
+      // the inclusive range, which also supports a single configured slot.
+      unsigned int bits = static_cast<unsigned int>( nextNumber );
+      int changeIndex = 0;
+      while ( ( bits & 1u ) == 0u ) {
+        ++changeIndex;
+        bits >>= 1;
+      }
+      const int slotCount = maxSlot - minSlot + 1;
+      lastSlot = minSlot + changeIndex % slotCount;
+    }
+    else {
+      lastSlot = lastSlot < minSlot || lastSlot >= maxSlot ? minSlot : lastSlot + 1;
+    }
+    lastNumber = nextNumber;
+  }
+
   bool QuickSave::KeepClosingMenus = false;
 
   HOOK Hook_zCMenu_HandleFrame PATCH( &zCMenu::HandleFrame, &zCMenu::HandleFrame_Union );
@@ -30,11 +77,15 @@ namespace GOTHIC_ENGINE {
 
   void QuickSave::SetSaveSlotAndNr() {
     zCArray<oCSavegameInfo*> saveList = gameMan->savegameManager->infoList;
+    NormalizeQuickSaveSlots( saveList.GetNum(), Options::MinSaveSlot, Options::MaxSaveSlot );
 
     int latestNr = 0;
     int latestSaveSlot = Invalid;
 
     for ( int i = 0; i < saveList.GetNum(); i++ ) {
+      if ( !saveList[i] )
+        continue;
+
       if ( saveList[i]->m_SlotNr < Options::MinSaveSlot || saveList[i]->m_SlotNr > Options::MaxSaveSlot )
         continue;
 
@@ -91,90 +142,12 @@ namespace GOTHIC_ENGINE {
     if ( !zinput->KeyToggled( Options::KeyQuickSave ) )
       return;
 
-    if ( !CanSave() ) {
+    if ( !NormalizeQuickSaveSlots( gameMan->savegameManager->infoList.GetNum(), Options::MinSaveSlot, Options::MaxSaveSlot ) || !CanSave() ) {
       ogame->GetTextView()->Printwin( Options::CantSave );
       return;
     }
 
-    if ( Options::QuickSaveMode == QuickSaveMode::Alternative ) {
-      // The algorithm looks very like adding numbers in binary.
-      // The idea behind using a binary addition is too use some SaveSlots
-      // more frequently then others. for example:
-      //     Slot0 -> will be used 50%
-      //     Slot1 -> will be used 25%
-      //     Slot2 -> will be used 12%
-      //     Slot3 -> will be used  6%
-      //     Slot4 -> will be used  3%
-      //     Slot5 -> will be used  1%
-      // Thanks to that, we have Slot5, Slot4 keeping the oldest (in actual date time) Saves
-      // Whiles Slot0, Slot1, keeping the newest (in actual date time) Saves
-      // This will give the ability to Load old save from Slot5, that was saved (lets say 2 ^ 5 = 32 saves ago)
-      // And at the same time, we have Slot1, Slot2 with newest saves (lets say last save)
-      //
-      // Example of such saving, I will mark a SaveSpot with brackets (numbers are an ID of a save):
-      //  -   [1]   1   [3]   3   [5]   5   [7]   7
-      //  -    -   [2]   2    2    2   [6]   6    6
-      //  -    -    -    -   [4]   4    4    4    4
-      //  -    -    -    -    -    -    -    -   [8]
-      //
-      // And their binary representation (numbers are a binary tree that helps me to determine SaveSpot):
-      //  0   [1]   0   [1]   0   [1]   0   [1]   0
-      //  0    0   [1]   1    0    0   [1]   1    0
-      //  0    0    0    0   [1]   1    1    1    0
-      //  0    0    0    0    0    0    0    0   [1]
-      //
-      // And their decimal representation:
-      //  0    1    2    3    4    5    6    7    8
-      //
-      // As you can see, the SaveSpots (brackets), are in a places where the
-      // number changed from 0 -> 1, number changing from 1 -> 0 does not matter.
-      //
-      //
-      // The problem in implementing that, is to create a naming system that
-      // can determine the Spot to Save, at any give point in time.
-      // Even after exit/restart of the game.
-
-      // We are saving for the first time probably
-      if ( iLastSaveNumber == Invalid ) {
-        iLastSaveSlot = Options::MinSaveSlot;
-        iLastSaveNumber = 1; // I could use ZERO as a first SaveName, it doesn't matter. number ONE is just more pleasant to the eye
-      }
-      // we need to figure out, on which slot to put next save.
-      else {
-        int const curName = iLastSaveNumber;
-        int const nextName = curName + 1;
-        // Now we need to find a change from 0 -> 1 between maxName and nextName
-        int changeIndex = -1;
-        int mask = ( (int)1 ); // 0...01
-        for ( int i = 0; i < ( sizeof( int ) * 8 ) - 1; ++i ) {
-          if ( ( nextName & mask ) > ( curName & mask ) ) {
-            changeIndex = i;
-            break;
-          }
-          // this operation moves 1 to the right, and resets first bit to 0, in order to check next bit
-          mask = ( mask << 1 ) & ( ~( (int)1 ) ); // 1...10
-        }
-
-        if ( changeIndex != -1 ) {
-          // We found an index where change happens, but this index is between 0 and 31.
-          // We need to cap it between Options::MinSaveSlot and Options::MaxSaveSlot
-          // To do it, I will wrap the number system around
-          int const slots = Options::MaxSaveSlot - Options::MinSaveSlot;
-          while ( changeIndex > slots ) {
-            // this operation moves the index one to the left, in order to fit in number of available slots
-            changeIndex -= slots;
-          }
-          iLastSaveSlot = Options::MinSaveSlot + changeIndex;
-          iLastSaveNumber++;
-        }
-      }
-    }
-    else {
-      iLastSaveSlot++;
-      iLastSaveNumber++;
-      if ( iLastSaveSlot > Options::MaxSaveSlot || iLastSaveSlot < Options::MinSaveSlot )
-        iLastSaveSlot = Options::MinSaveSlot;
-    }
+    AdvanceQuickSaveSlot( Options::QuickSaveMode, Options::MinSaveSlot, Options::MaxSaveSlot, iLastSaveSlot, iLastSaveNumber );
 
     // Thumbnail
     zCTextureConvert* thumb = zrenderer->CreateTextureConvert();
@@ -190,7 +163,7 @@ namespace GOTHIC_ENGINE {
 #endif
 
     // SaveInfo
-    oCSavegameInfo* info = gameMan->savegameManager->GetSavegame( iLastSaveSlot );
+    oCSavegameInfo* info = GetQuickSaveInfo( iLastSaveSlot );
 
     info->m_Name = Z Options::SaveName + Z iLastSaveNumber;
     info->m_WorldName = ogame->GetGameWorld()->GetWorldName();
@@ -218,7 +191,7 @@ namespace GOTHIC_ENGINE {
       return;
     }
 
-    oCSavegameInfo* info = gameMan->savegameManager->GetSavegame( iLastSaveSlot );
+    oCSavegameInfo* info = GetQuickSaveInfo( iLastSaveSlot );
 
     if ( !info || !info->DoesSavegameExist() ) {
       ogame->GetTextView()->Printwin( Z Options::NoSave + " (" + Z iLastSaveSlot + ")" );
@@ -289,7 +262,7 @@ namespace GOTHIC_ENGINE {
 
     if ( !( Options::QuickLoadAfterGameStart || zinput->KeyToggled( Options::KeyQuickLoad ) ) ) return;
 
-    oCSavegameInfo* info = gameMan->savegameManager->GetSavegame( iLastSaveSlot );
+    oCSavegameInfo* info = GetQuickSaveInfo( iLastSaveSlot );
     if ( !info || !info->DoesSavegameExist() ) return;
 
     LoadFromMainMenu();

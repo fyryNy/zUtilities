@@ -24,7 +24,7 @@ namespace GOTHIC_ENGINE {
     void RestoreViewport();
 
   public:
-    IconInfo( int x, int y, int size, zCOLOR color, zSTRING texName, zSTRING text );
+    IconInfo( int x, int y, int size, zCOLOR color, zSTRING texName, zSTRING text = "" );
     int GetSize();
   };
 }

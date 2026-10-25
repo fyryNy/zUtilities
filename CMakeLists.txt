@@ -92,6 +92,10 @@ foreach(_definition IN LISTS _game_definitions)
     string(APPEND _intellisense_active_definitions
         "#ifndef ${_definition}\n#define ${_definition}\n#endif\n")
 endforeach()
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    string(APPEND _intellisense_active_definitions
+        "#ifndef _DEBUG\n#define _DEBUG\n#endif\n")
+endif()
 set(_intellisense_active_dir "${CMAKE_BINARY_DIR}/intellisense")
 set(_intellisense_active_header
     "${_intellisense_active_dir}/IntelliSenseActivePreset.h")
@@ -163,15 +167,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
     set(_vs_configuration "${_vs_game} ${UNION_RUNTIME} Release")
 endif()
-string(FIND "${_vcxproj_xml}" "=='${_vs_configuration}|Win32'" _config_position)
-set(_configuration_xml "")
-if(NOT _config_position EQUAL -1)
-    string(SUBSTRING "${_vcxproj_xml}" ${_config_position} -1 _configuration_tail)
-    string(FIND "${_configuration_tail}" "</ItemDefinitionGroup>" _config_end)
-    if(NOT _config_end EQUAL -1)
-        string(SUBSTRING "${_configuration_tail}" 0 ${_config_end} _configuration_xml)
-    endif()
-endif()
+include(cmake/VisualStudioConfiguration.cmake)
+zutilities_vcxproj_configuration(_configuration_xml "${_vcxproj_xml}" "${_vs_configuration}")
 
 if(_configuration_xml MATCHES "<LanguageStandard>stdcpplatest</LanguageStandard>")
     target_compile_options(zUtilities PRIVATE /std:c++latest)
@@ -194,20 +191,37 @@ set(_project_includes
     "${_directx_include}"
     ${UNION_EXTRA_INCLUDE_DIRECTORIES})
 
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+    include(cmake/IntelliSenseProperties.cmake)
+    find_program(_intellisense_compiler NAMES clang-cl NO_CACHE)
+    if(NOT _intellisense_compiler)
+        set(_intellisense_compiler clang-cl)
+    endif()
+    set(_intellisense_properties "${_intellisense_active_dir}/c_cpp_properties.json")
+    zutilities_generate_cpptools_config("${_intellisense_properties}" "${CMAKE_SOURCE_DIR}"
+        COMPILER "${_intellisense_compiler}"
+        INCLUDE_DIRECTORIES ${_project_includes} ${CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES})
+    zutilities_select_cpptools_config("${_intellisense_properties}"
+        "${CMAKE_SOURCE_DIR}/cmake/IntelliSenseActiveProperties.json")
+endif()
+
 target_include_directories(zUtilities PRIVATE ${_project_includes})
 target_link_directories(zUtilities PRIVATE
     "${_union_lib}" "${_directx_lib}" ${UNION_EXTRA_LIBRARY_DIRECTORIES})
 
 set(_common_definitions
     WIN32 _WINDOWS _USRDLL GOTHICPLUGIN_EXPORTS _WINDLL _MBCS
+    $<$<CONFIG:Debug>:_DEBUG>
     ${_game_definitions})
 target_compile_definitions(zUtilities PRIVATE ${_common_definitions})
 
 if(UNION_RUNTIME STREQUAL "MT")
-    set_property(TARGET zUtilities PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded")
+    set_property(TARGET zUtilities PROPERTY MSVC_RUNTIME_LIBRARY
+        "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 elseif(UNION_RUNTIME STREQUAL "MD")
-    # Old template Debug configurations deliberately use /MD, not /MDd.
-    set_property(TARGET zUtilities PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
+    # _DEBUG enables CRT/STL checks, which require the matching debug runtime.
+    set_property(TARGET zUtilities PROPERTY MSVC_RUNTIME_LIBRARY
+        "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 else()
     message(FATAL_ERROR "Unsupported UNION_RUNTIME: ${UNION_RUNTIME}")
 endif()
@@ -215,8 +229,8 @@ endif()
 target_compile_options(zUtilities PRIVATE
     # Union's XCALL macro restores ESP from EBP before tail-jumping into
     # ZenGin. Match the old Visual Studio release code-generation settings.
-    /W3 /sdl /Oi /Oy- /GL /GS /Gy /fp:precise
-    /Zc:wchar_t /Zc:forScope /Zc:inline /wd4244
+    /W3 /sdl /Oi /Oy- $<$<CONFIG:Release>:/GL> /GS /Gy /fp:precise
+    /Zc:wchar_t /Zc:forScope /Zc:inline
     "/FI${_plugin_dir}/UnionAfx.h")
 target_link_options(zUtilities PRIVATE
     /SUBSYSTEM:WINDOWS
@@ -262,8 +276,9 @@ if(_intellisense_fragments)
         set_property(TARGET zUtilities_IntelliSense PROPERTY
             CXX_STANDARD ${_intellisense_cxx_standard})
     endif()
+    get_property(_intellisense_runtime TARGET zUtilities PROPERTY MSVC_RUNTIME_LIBRARY)
     set_property(TARGET zUtilities_IntelliSense PROPERTY
-        MSVC_RUNTIME_LIBRARY "MultiThreaded")
+        MSVC_RUNTIME_LIBRARY "${_intellisense_runtime}")
 endif()
 
 # Make clangd and cpptools follow whichever real preset was configured most

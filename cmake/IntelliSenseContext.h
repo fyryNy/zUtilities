@@ -32,4 +32,3 @@
 #define CHECK_THIS_ENGINE (Union.GetEngineVersion() == ENGINE)
 
 #include "Headers.h"
-#include "Sources.h"

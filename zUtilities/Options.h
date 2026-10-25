@@ -42,6 +42,7 @@ namespace GOTHIC_ENGINE {
       const string nline = "\r\n; ";
 
       zoptions->AddTrivia( PLUGIN_NAME, "LogBookColoring", "... enables (1) or disables (0) coloring of new and unread topics in logbook" );
+      zoptions->AddTrivia( PLUGIN_NAME, "LogBookSortTopics", "... enables (1) or disables (0) moving logbook topics to the top when a new entry is added" );
 
       zoptions->AddTrivia( PLUGIN_NAME, "RecoveryVisualization", "... enables (1) or disables (0) visualization of healing that hovered in the inventory item gives" );
       zoptions->AddTrivia( PLUGIN_NAME, "StatusBarValueMode", "... specifies mode of showing status bar value, (0) - 'Disabled', (1) - 'Above', (2) - 'PointToCenter', (3) - 'Inside'" );
@@ -54,9 +55,15 @@ namespace GOTHIC_ENGINE {
       zoptions->AddTrivia( PLUGIN_NAME, "ShowSystemTime", "... on screen display of system time (24H format), (0) - 'Disabled', (1) - 'Hour:Minute format', (2) - 'Hour:Minute:Second format'" );
       zoptions->AddTrivia( PLUGIN_NAME, "ShowGameTime", "... enables (1) or disables (0) on screen display of in game time" );
       zoptions->AddTrivia( PLUGIN_NAME, "ShowMunitionAmount", "... enables (1) or disables (0) on screen display of currently used munition amount" );
-      zoptions->AddTrivia( PLUGIN_NAME, "ShowTargetProtection", "... enables for currently equipped weapon (1) or shows all protection stats (2) or disables (0) protection icon and value next to the focused npc hp bar" );
-      zoptions->AddTrivia( PLUGIN_NAME, "ShowProtOnlyInFight", "... enables (1) or disables (0) showing protection stats only during combat" );
-      zoptions->AddTrivia( PLUGIN_NAME, "ShowProtAllDamageTypes", "... enables (1) or disables (0) showing all protection stats, even if they are 0" );
+      zoptions->AddTrivia( PLUGIN_NAME, "ShowTargetProtectionNoFight", "... specifies mode for showing target protection in no fight mode by" + nline + "... (0) - 'Disabled', (1) - 'CurrentWeapon', (2) - 'All'" );
+      zoptions->AddTrivia( PLUGIN_NAME, "ShowTargetProtectionInFight", "... specifies mode for showing target protection in fight mode by" + nline + "... (0) - 'Disabled', (1) - 'CurrentWeapon', (2) - 'All'" );
+      zoptions->AddTrivia( PLUGIN_NAME, "TargetProtectionIconStyle", "... specifies protection icon style, (0) - 'DamagePopup', (1) - 'Shields'" );
+      zoptions->AddTrivia( PLUGIN_NAME, "TargetProtectionIconPosition", "... specifies protection icon position, (0) - 'Top', (1) - 'Right'" );
+      zoptions->AddTrivia( PLUGIN_NAME, "DistanceWeaponDamageType", "... fallback damage type mask for ranged weapons without damage metadata; 0 defaults to Point" + nline + "... add flags: Barrier=1, Blunt=2, Edge=4, Fire=8, Fly=16, Magic=32, Point=64, Fall=128" + nline + "... actual hits can override this fallback for the current weapon and ammunition" );
+      zoptions->AddTrivia( PLUGIN_NAME, "HideTargetProtectionZeroValues", "... hides protection icons with zero value, (0) - 'Disabled', (1) - 'Enabled'" );
+      zoptions->AddTrivia( PLUGIN_NAME, "HideTargetProtectionFallDamage", "... hides protection icon for fall damage, (0) - 'Disabled', (1) - 'Enabled'" );
+      zoptions->AddTrivia( PLUGIN_NAME, "HideTargetProtectionFlyDamage", "... hides protection icon for fly damage, (0) - 'Disabled', (1) - 'Enabled'" );
+      zoptions->AddTrivia( PLUGIN_NAME, "HideTargetProtectionFireDamage", "... hides protection icon for fire damage, (0) - 'Disabled', (1) - 'Enabled'" );
 #if ENGINE >= Engine_G2
       zoptions->AddTrivia( PLUGIN_NAME, "ShowPickpocketIcon", "... enables (1) or disables (0) coin icon next to the focused npc name when it can be pickpocketed" );
 #endif
@@ -103,6 +110,7 @@ namespace GOTHIC_ENGINE {
       zoptions->AddTrivia( PLUGIN_NAME, "SelectedDialogueColor", "... defines color of selected line in dialogues" + nline + "... use 'R|G|B' or 'R|G|B|A' format" + nline + "... leave empty to use default color" );
 
       zoptions->AddTrivia( PLUGIN_NAME, "SaveReminder", "... Time in minutes after which the reminder to save the game appears on the screen" + nline + "... set to -1 to disable" );
+
       zoptions->AddTrivia( PLUGIN_NAME, "RemoveEmptyBodies", "... removing of dead empty bodies from the world" + nline + "... 0 - turned off" + nline + "... 1 - bodies fade away over time" + nline + "... 2 - bodies are removed immediately" );
 
       zoptions->AddTrivia( PLUGIN_NAME, "NoGrass", "... enables (1) or disables (0) hiding visuals for grass and other specified vobs" );

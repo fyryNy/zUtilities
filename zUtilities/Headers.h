@@ -1,10 +1,18 @@
 // Supported with union (c) 2018-2021 Union team
 // Add your headers this
 
+#ifdef _MSC_VER
+// The Union template suppresses these while loading its SDK headers.
+// Keep conversion diagnostics enabled for the plugin itself.
+#pragma warning(default:4244 4305)
+#endif
+
 // Automatically generated block
 #include <chrono>
+#include <cmath>
 #include <unordered_set>
 #include <unordered_map>
+#include <bitset>
 #pragma region Includes
 #include "Const.h"
 #include "Colors.h"
@@ -12,7 +20,7 @@
 #include "Randomizer.h"
 #include "KeyCode.h"
 #include "IconInfo.h"
-#include "NpcHelper.h"
+#include "DamageMaskHelper.h"
 #include "PlayerHelper.h"
 #include "DebugHelper.h"
 #include "FocusColor.h"

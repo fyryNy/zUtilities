@@ -363,5 +363,6 @@ MP x[24] M[dDtT] Release
 /out/
 /compile_commands.json
 /cmake/IntelliSenseActivePreset.h
+/cmake/IntelliSenseActiveProperties.json
 
 *.vdf

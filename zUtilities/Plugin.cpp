@@ -3,6 +3,36 @@
 #include "resource.h"
 
 namespace GOTHIC_ENGINE {
+  HOOK Hook_oCSpawnManager_DeleteNpc PATCH( &oCSpawnManager::DeleteNpc, &oCSpawnManager::DeleteNpc_Union );
+  void oCSpawnManager::DeleteNpc_Union( oCNpc* npc ) {
+    if ( npc ) {
+      // Logical deletion can bypass world removal for an already disabled NPC.
+      npc->AddRef();
+    }
+    THISCALL( Hook_oCSpawnManager_DeleteNpc )( npc );
+    if ( npc ) {
+      ForgetFadingBody( npc );
+      npc->Release();
+    }
+  }
+
+  HOOK Hook_zCWorld_VobRemovedFromWorld PATCH( &zCWorld::VobRemovedFromWorld, &zCWorld::VobRemovedFromWorld_Union );
+  void zCWorld::VobRemovedFromWorld_Union( zCVob* vob ) {
+    // Forgetting cached state can release the plugin's last retained reference.
+    // Keep the vob alive until the engine's removal callback has finished too.
+    if ( vob )
+      vob->AddRef();
+    if ( vob ) {
+      if ( oCNpc* npc = vob->CastTo<oCNpc>() ) {
+        ForgetFadingBody( npc );
+      }
+      noGrass.ForgetVob( vob );
+    }
+    THISCALL( Hook_zCWorld_VobRemovedFromWorld )( vob );
+    if ( vob )
+      vob->Release();
+  }
+
   void Game_Entry() {
   }
 
@@ -15,6 +45,10 @@ namespace GOTHIC_ENGINE {
   }
 
   void Game_Exit() {
+    for ( ; popups.GetNum() > 0; )
+      delete popups[0];
+    ClearFadingBodies();
+    noGrass.RestoreVisibility();
   }
 
   void Game_PreLoop() {
@@ -40,6 +74,8 @@ namespace GOTHIC_ENGINE {
 
   void Game_SaveBegin() {
     quickSave->isSaving = true;
+    // Fade tracking is session-only; save the NPC's original render/state values.
+    ClearFadingBodies();
     playerStatus.Clear();
   }
 
@@ -60,6 +96,7 @@ namespace GOTHIC_ENGINE {
       delete popups[0];
     noGrass.RestoreVisibility();
     lastActiveMunition = nullptr;
+    DamageMaskHelper::ClearRangedDamage();
     ClearFadingBodies();
 #if ENGINE >= Engine_G2
     vfxs.clear();

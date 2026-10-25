@@ -304,7 +304,7 @@ namespace GOTHIC_ENGINE {
 
     int startPos = ( item == player->inventory2.GetSelectedItem() ) ? 500 : 250;
 
-    int endPos = startPos + 2000 * Options::LabelScale;
+    int endPos = static_cast<int>( startPos + 2000 * Options::LabelScale );
 
     zCView* labelView = new zCView( startPos, startPos, endPos, endPos );
     labelView->InsertBack( "LABEL_" + texture );

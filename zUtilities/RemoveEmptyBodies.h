@@ -11,4 +11,5 @@ namespace GOTHIC_ENGINE {
   }
 
   void ClearFadingBodies();
+  void ForgetFadingBody( oCNpc* );
 }

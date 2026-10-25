@@ -4,9 +4,12 @@
 namespace GOTHIC_ENGINE {
   HOOK Hook_oCLogTopic_AddEntry PATCH( &oCLogTopic::AddEntry, &oCLogTopic::AddEntry_Union );
   void oCLogTopic::AddEntry_Union( zSTRING const& entry ) {
+    int entryCount = m_lstEntries.GetNum();
     THISCALL( Hook_oCLogTopic_AddEntry )( entry );
 
-    logBook.AddTopic( this );
+    // The engine ignores duplicate entries; only an actual addition updates the topic.
+    if ( m_lstEntries.GetNum() > entryCount )
+      logBook.AddTopic( this );
   }
 
   HOOK Hook_zCMenuItemList_ShowContent PATCH( &zCMenuItemList::ShowContent, &zCMenuItemList::ShowContent_Union );
@@ -65,6 +68,14 @@ namespace GOTHIC_ENGINE {
   }
 
   void LogBook::AddTopic( oCLogTopic* topic ) {
+    if ( Options::LogBookSortTopics ) {
+      zCList<oCLogTopic>& topics = oCLogManager::GetLogManager().m_lstTopics;
+      if ( topics.Get( 0 ) != topic && topics.IsInList( topic ) ) {
+        topics.Remove( topic );
+        topics.Insert( topic );
+      }
+    }
+
     if ( unreadTopics.IsInList( topic->m_strDescription ) || newTopics.IsInList( topic->m_strDescription ) )
       return;
 

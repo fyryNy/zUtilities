@@ -14,7 +14,8 @@ namespace GOTHIC_ENGINE {
     }
 
     vfxs.push_back( this );
-    playerStatus.ResetTimeMultiplier();
+    if ( Options::UseTimeMultiplier )
+      playerStatus.ResetTimeMultiplier();
 
     THISCALL( Ivk_InitEffect_Union )( );
   }
@@ -115,10 +116,17 @@ namespace GOTHIC_ENGINE {
       if ( info->GetNpcID() != npc->GetInstance() )
         continue;
 
+      auto selfSymbol = parser->GetSymbol( "SELF" );
+      auto otherSymbol = parser->GetSymbol( "OTHER" );
+      void* previousSelf = selfSymbol ? selfSymbol->GetInstanceAdr() : nullptr;
+      void* previousOther = otherSymbol ? otherSymbol->GetInstanceAdr() : nullptr;
+
       parser->SetInstance( "SELF", npc );
       parser->SetInstance( "OTHER", player );
-
-      return info->InfoConditions();
+      const bool available = info->InfoConditions();
+      parser->SetInstance( "SELF", previousSelf );
+      parser->SetInstance( "OTHER", previousOther );
+      return available;
     }
 
     return false;
@@ -248,13 +256,18 @@ namespace GOTHIC_ENGINE {
 #endif
 
   void PlayerStatus::ResetTimeMultiplier() {
-    if ( !ztimer )
-      return;
-
-    ztimer->factorMotion = 1.0f;
+    if ( ztimer ) {
+      // Restore only a multiplier owned by the plugin. Console commands and
+      // spell effects can change the same engine field independently.
+      if ( speedSuppressed && ztimer->factorMotion == 1.0f )
+        ztimer->factorMotion = ownsTimeMultiplier ? 1.0f : lastAppliedMotion;
+      else if ( ownsTimeMultiplier && ztimer->factorMotion == lastAppliedMotion )
+        ztimer->factorMotion = 1.0f;
+    }
     lastAppliedMotion = 1.0f;
     multiplierIndex = 0;
     speedSuppressed = false;
+    ownsTimeMultiplier = false;
   }
 
   void PlayerStatus::ResetSaveReminder() {
@@ -267,8 +280,10 @@ namespace GOTHIC_ENGINE {
   }
 
   void PlayerStatus::FactorMotion() {
-    if ( !Options::UseTimeMultiplier )
+    if ( !Options::UseTimeMultiplier ) {
+      ResetTimeMultiplier();
       return;
+    }
 
     if ( !Options::TimeMultipliers.GetNum() || playerHelper.IsConUp() )
       return;
@@ -276,9 +291,11 @@ namespace GOTHIC_ENGINE {
     if ( !CanChangeZtimer() )
       return;
 
-    if ( playerHelper.IsDead() || playerHelper.IsInInfo() || ogame->IsOnPause() ) {
+    if ( playerHelper.IsDead() || playerHelper.IsInInfo()  || playerHelper.IsInCutscene() || ogame->IsOnPause() ) {
       if ( !speedSuppressed ) {
         if ( ztimer->factorMotion != 1.0f ) {
+          if ( ztimer->factorMotion != lastAppliedMotion )
+            ownsTimeMultiplier = false;
           lastAppliedMotion = ztimer->factorMotion;
           ztimer->factorMotion = 1.0f;
           speedSuppressed = true;
@@ -286,23 +303,30 @@ namespace GOTHIC_ENGINE {
       }
       else if ( ztimer->factorMotion != 1.0f ) {
         lastAppliedMotion = ztimer->factorMotion;
+        ownsTimeMultiplier = false;
         ztimer->factorMotion = 1.0f;
       }
       return;
     }
 
     if ( speedSuppressed ) {
-      ztimer->factorMotion = lastAppliedMotion;
+      if ( ztimer->factorMotion == 1.0f )
+        ztimer->factorMotion = lastAppliedMotion;
+      else {
+        lastAppliedMotion = ztimer->factorMotion;
+        ownsTimeMultiplier = false;
+      }
       speedSuppressed = false;
     }
 
     if ( zinput->KeyToggled( Options::KeyTimeMultiplier ) ) {
       multiplierIndex++;
-      if ( multiplierIndex < 0 || multiplierIndex >= Options::TimeMultipliers.GetNum() )
+      if ( multiplierIndex >= Options::TimeMultipliers.GetNum() )
         multiplierIndex = 0;
 
       ztimer->factorMotion = Options::TimeMultipliers[multiplierIndex];
       lastAppliedMotion = ztimer->factorMotion;
+      ownsTimeMultiplier = true;
       return;
     }
 
@@ -310,6 +334,7 @@ namespace GOTHIC_ENGINE {
     // adopt the new value instead of forcefully overriding it.
     if ( ztimer->factorMotion != lastAppliedMotion ) {
       lastAppliedMotion = ztimer->factorMotion;
+      ownsTimeMultiplier = false;
 
       for ( uint i = 0; i < Options::TimeMultipliers.GetNum(); i++ ) {
         if ( Options::TimeMultipliers[i] == ztimer->factorMotion ) {
@@ -325,6 +350,9 @@ namespace GOTHIC_ENGINE {
       return;
 
     if ( playerHelper.LeftInvOpen() || playerHelper.IsConUp() || !ogame->GetShowPlayerStatus() || !ogame->hpBar )
+      return;
+
+    if ( playerHelper.IsInCutscene() )
       return;
 
     zSTRING str = "";
@@ -344,7 +372,8 @@ namespace GOTHIC_ENGINE {
 
     infoIcons++;
     color.alpha = ogame->hpBar->alpha;
-    IconInfo icon = IconInfo( screen->FontY(), screen->FontY() * 2.5 * infoIcons, screen->FontY() * 0.9f, color, texture, str );
+    IconInfo icon = IconInfo( screen->FontY(), static_cast<int>( screen->FontY() * 2.5 * infoIcons ),
+      static_cast<int>( screen->FontY() * 0.9f ), color, texture, str );
   }
 
   void PlayerStatus::ShowGameTime() {
@@ -352,6 +381,9 @@ namespace GOTHIC_ENGINE {
       return;
 
     if ( playerHelper.LeftInvOpen() || playerHelper.IsConUp() || !ogame->GetShowPlayerStatus() || !ogame->hpBar )
+      return;
+
+    if ( playerHelper.IsInCutscene() )
       return;
 
     zSTRING str = "";
@@ -376,7 +408,8 @@ namespace GOTHIC_ENGINE {
 
     infoIcons++;
     color.alpha = ogame->hpBar->alpha;
-    IconInfo icon = IconInfo( screen->FontY(), screen->FontY() * 2.5 * infoIcons, screen->FontY() * 0.9f, color, texture, str );
+    IconInfo icon = IconInfo( screen->FontY(), static_cast<int>( screen->FontY() * 2.5 * infoIcons ),
+      static_cast<int>( screen->FontY() * 0.9f ), color, texture, str );
   }
 
   void PlayerStatus::ShowMunitionAmount() {
@@ -384,6 +417,9 @@ namespace GOTHIC_ENGINE {
       return;
 
     if ( playerHelper.LeftInvOpen() || playerHelper.IsConUp() || !ogame->GetShowPlayerStatus() || !ogame->hpBar )
+      return;
+
+    if ( playerHelper.IsInCutscene() )
       return;
 
     oCItem* weapon = player->GetEquippedRangedWeapon();
@@ -416,7 +452,8 @@ namespace GOTHIC_ENGINE {
 
     infoIcons++;
     color.alpha = ogame->hpBar->alpha;
-    IconInfo icon = IconInfo( screen->FontY(), screen->FontY() * 2.5 * infoIcons, screen->FontY() * 0.9f, color, texture, Z amount );
+    IconInfo icon = IconInfo( screen->FontY(), static_cast<int>( screen->FontY() * 2.5 * infoIcons ),
+      static_cast<int>( screen->FontY() * 0.9f ), color, texture, Z amount );
   }
 
   void PlayerStatus::ShowSaveReminder() {
@@ -424,7 +461,7 @@ namespace GOTHIC_ENGINE {
       Options::SaveReminder == Invalid
       || !ogame
       || !player
-      || playerHelper.IsBusy()
+      || playerHelper.IsInCutscene()
       || quickSave->IsBusy()
       || playerHelper.IsDead()
       || playerHelper.IsConUp()
@@ -445,7 +482,8 @@ namespace GOTHIC_ENGINE {
       zSTRING texture = "ICON_SAVE"; // https://game-icons.net/1x1/lorc/disc.html
 
       infoIcons++;
-      IconInfo icon = IconInfo( screen->FontY(), screen->FontY() * 2.5 * infoIcons, screen->FontY() * 0.9f, GFX_RED, texture, str );
+      IconInfo icon = IconInfo( screen->FontY(), static_cast<int>( screen->FontY() * 2.5 * infoIcons ),
+        static_cast<int>( screen->FontY() * 0.9f ), GFX_RED, texture, str );
     }
   }
 
